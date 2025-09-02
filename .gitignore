@@ -249,6 +249,7 @@ env.bak/
 venv.bak/
 venv
 env
+logs/
 
 # Jupyter Notebook
 .ipynb_checkpoints

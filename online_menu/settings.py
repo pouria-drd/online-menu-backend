@@ -1,3 +1,6 @@
+# ---------------------------------------------------------------
+# Django Settings for Online Menu Project
+# ---------------------------------------------------------------
 """
 Django settings for online_menu project.
 
@@ -10,113 +13,249 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+
+# ---------------------------------------------------------------
+# Load Environment Variables
+# ---------------------------------------------------------------
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
+# ---------------------------------------------------------------
+# Security & Debug Configuration
+# ---------------------------------------------------------------
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_^*6zy#+6hq85twc9#0u_pg@kjgzk$4qrbzn@58snvjxikyd8g'
+SECRET_KEY = os.getenv("SECRET_KEY", "secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 
-# Application definition
-
+# ---------------------------------------------------------------
+# Installed Apps Configuration
+# ---------------------------------------------------------------
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    # Default Django apps
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    # 3rd party apps
+    "corsheaders",
+    "django_filters",
+    "rest_framework",
+    # Custom apps
 ]
 
+
+# ---------------------------------------------------------------
+# Middleware Configuration
+# ---------------------------------------------------------------
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",  # CORS middleware
+    "django.middleware.security.SecurityMiddleware",  # Security middleware
+    "django.contrib.sessions.middleware.SessionMiddleware",  # Session middleware
+    "django.middleware.common.CommonMiddleware",  # Common middleware
+    "django.middleware.csrf.CsrfViewMiddleware",  # CSRF protection
+    "django.contrib.auth.middleware.AuthenticationMiddleware",  # Authentication middleware
+    "django.contrib.messages.middleware.MessageMiddleware",  # Message middleware
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",  # Prevent clickjacking
 ]
 
-ROOT_URLCONF = 'online_menu.urls'
+
+# ---------------------------------------------------------------
+# Debug Toolbar Configuration
+# ---------------------------------------------------------------
+ENABLE_DEBUG_TOOLBAR = os.getenv("ENABLE_DEBUG_TOOLBAR", "False").lower() == "true"
+if ENABLE_DEBUG_TOOLBAR:
+    INSTALLED_APPS.append("debug_toolbar")
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+
+
+# ---------------------------------------------------------------
+# URL Configuration
+# ---------------------------------------------------------------
+ROOT_URLCONF = "online_menu.urls"
+WSGI_APPLICATION = "online_menu.wsgi.application"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'online_menu.wsgi.application'
 
-
-# Database
+# ---------------------------------------------------------------
+# Database Configuration
+# ---------------------------------------------------------------
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "online_menu_db.sqlite3",
     }
 }
 
 
-# Password validation
+# ---------------------------------------------------------------
+# Password Validation
+# ---------------------------------------------------------------
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 
+# ---------------------------------------------------------------
 # Internationalization
+# ---------------------------------------------------------------
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_TZ = True
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = os.getenv("TIME_ZONE", "UTC")
+USE_I18N = os.getenv("USE_I18N", "True") == "True"
+USE_TZ = os.getenv("USE_TZ", "True") == "True"
 
 
-# Static files (CSS, JavaScript, Images)
+# ---------------------------------------------------------------
+# Static & Media Files
+# ---------------------------------------------------------------
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+# Static files URL and root directory
+STATIC_URL = os.getenv("STATIC_URL", "static/")  # Default is "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, os.getenv("STATIC_ROOT", "static"))
 
-STATIC_URL = 'static/'
+# Media files URL and root directory
+MEDIA_URL = os.getenv("MEDIA_URL", "/media/")  # Default is "/media/"
+MEDIA_ROOT = BASE_DIR / os.getenv("MEDIA_ROOT", "media")
 
-# Default primary key field type
+
+# ---------------------------------------------------------------
+# Default Primary Key Field Type
+# ---------------------------------------------------------------
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ---------------------------------------------------------------
+# Allowed Hosts & Internal IPs
+# ---------------------------------------------------------------
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost").split(",")
+INTERNAL_IPS = os.getenv("INTERNAL_IPS", "127.0.0.1").split(",")
+
+
+# ---------------------------------------------------------------
+# CORS & CSRF Configuration
+# ---------------------------------------------------------------
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+CORS_ALLOW_CREDENTIALS = os.getenv("CORS_ALLOW_CREDENTIALS", "False") == "True"
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+
+# ---------------------------------------------------------------
+# Django REST Framework Configuration
+# ---------------------------------------------------------------
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 100,
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.UserRateThrottle",
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": os.getenv("ANON_THROTTLE_RATE", "10/minute"),
+        "user": os.getenv("USER_THROTTLE_RATE", "20/minute"),
+    },
+}
+
+
+# ---------------------------------------------------------------
+# Email Configuration
+# ---------------------------------------------------------------
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT", 587)
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+
+
+# ---------------------------------------------------------------
+# Logging Configuration
+# ---------------------------------------------------------------
+LOGS_DIR = os.path.join(BASE_DIR, "logs")
+os.makedirs(LOGS_DIR, exist_ok=True)
+LOG_LEVEL = "DEBUG" if DEBUG else "INFO"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {
+            "format": '{"time": "%(asctime)s", "level": "%(levelname)s", "name": "%(name)s", "message": "%(message)s"}',
+        },
+        "console": {
+            "format": "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "console",
+        },
+        "file": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": os.path.join(LOGS_DIR, "online_menu.log"),
+            "level": LOG_LEVEL,
+            "when": "midnight",
+            "interval": 1,
+            "backupCount": 0,
+            "formatter": "json",
+            "encoding": "utf-8",
+        },
+    },
+    "loggers": {
+        # "django": {
+        #     "handlers": ["console", "file"],
+        #     "level": LOG_LEVEL,
+        #     "propagate": True,
+        # },
+    },
+}
