@@ -119,6 +119,15 @@
   }
 </style>
 
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label='monitoring' %}">Monitoring</a>
+    &rsaquo; <a href="{% url 'admin:monitoring_logcentermodel_changelist' %}">Log Center</a>
+
+</div>
+{% endblock %}
+
 <form method="get" class="log-toolbar">
   <label>
     App:
