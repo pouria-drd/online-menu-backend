@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     # Custom apps
+    "monitoring",
 ]
 
 
@@ -89,7 +90,7 @@ WSGI_APPLICATION = "online_menu.wsgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -220,9 +221,23 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 # ---------------------------------------------------------------
 # Logging Configuration
 # ---------------------------------------------------------------
-LOGS_DIR = os.path.join(BASE_DIR, "logs")
-os.makedirs(LOGS_DIR, exist_ok=True)
 LOG_LEVEL = "DEBUG" if DEBUG else "INFO"
+
+
+# Ensure log directories exist
+def ensure_log_dir(log_dir):
+    os.makedirs(log_dir, exist_ok=True)
+
+
+# Define log directories for each app
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+APP_LOG_DIRS = {
+    "monitoring": os.path.join(LOG_DIR, "monitoring"),  # For monitoring app logs
+}
+
+# Create log directories
+for app, log_dir in APP_LOG_DIRS.items():
+    ensure_log_dir(log_dir)
 
 LOGGING = {
     "version": 1,
@@ -240,22 +255,24 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "console",
         },
-        "file": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
-            "filename": os.path.join(LOGS_DIR, "online_menu.log"),
-            "level": LOG_LEVEL,
-            "when": "midnight",
-            "interval": 1,
-            "backupCount": 0,
-            "formatter": "json",
-            "encoding": "utf-8",
-        },
     },
-    "loggers": {
-        # "django": {
-        #     "handlers": ["console", "file"],
-        #     "level": LOG_LEVEL,
-        #     "propagate": True,
-        # },
-    },
+    "loggers": {},
 }
+
+for app_name, dir_path in APP_LOG_DIRS.items():
+    handler_name = f"{app_name}_file"
+    LOGGING["handlers"][handler_name] = {
+        "class": "logging.handlers.TimedRotatingFileHandler",
+        "filename": os.path.join(dir_path, f"{app_name}.log"),
+        "level": "DEBUG" if DEBUG else "INFO",
+        "when": "midnight",
+        "interval": 1,
+        "backupCount": 0,
+        "formatter": "json",
+        "encoding": "utf-8",
+    }
+    LOGGING["loggers"][app_name] = {
+        "handlers": ["console", handler_name],
+        "level": "DEBUG" if DEBUG else "INFO",
+        "propagate": False,
+    }
