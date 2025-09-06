@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     # Custom apps
+    "mailer",
     "monitoring",
 ]
 
@@ -232,6 +233,7 @@ def ensure_log_dir(log_dir):
 # Define log directories for each app
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 APP_LOG_DIRS = {
+    "mailer": os.path.join(LOG_DIR, "mailer"),  # For mailer app logs
     "monitoring": os.path.join(LOG_DIR, "monitoring"),  # For monitoring app logs
 }
 
