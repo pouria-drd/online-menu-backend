@@ -66,8 +66,8 @@ class EmailService:
             body_html=html_content or "",
             body_plain=plain_content or "",
             sender=sender or DEFAULT_FROM_EMAIL,
-            cc=cc,
-            bcc=bcc,
+            cc=cc or [],
+            bcc=bcc or [],
             priority=priority,
             user=user,
             metadata=metadata or {},
@@ -219,7 +219,10 @@ class EmailService:
         return EmailBlacklistModel.objects.filter(email=email, is_active=True).exists()
 
     def _create_log(self, **kwargs) -> EmailLogModel:
-        """Create log"""
+        """Create email log ensuring cc, bcc, and metadata are never None"""
+        kwargs.setdefault("cc", [])
+        kwargs.setdefault("bcc", [])
+        kwargs.setdefault("metadata", {})
         return EmailLogModel.objects.create(**kwargs)
 
     def _create_email_message(
