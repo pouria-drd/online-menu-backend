@@ -30,6 +30,6 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
-admin.site.index_title = "online Menu Admin"
-admin.site.site_header = "online Menu Admin"
-admin.site.site_title = "online Menu"
+admin.site.index_title = "Online Menu Admin"
+admin.site.site_header = "Online Menu Admin"
+admin.site.site_title = "Online Menu"
