@@ -4,8 +4,8 @@ from django.contrib.auth import get_user_model
 from django.core.validators import EmailValidator
 
 from ..managers import EmailLogManager
-from ..constants import EmailStatus, EmailPriority
 from .email_template_model import EmailTemplateModel
+from ..constants import EmailStatus, EmailPriority, DEFAULT_FROM_EMAIL
 
 User = get_user_model()
 
@@ -16,6 +16,9 @@ class EmailLogModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     recipient = models.EmailField(validators=[EmailValidator()])
+    sender = models.EmailField(
+        default=DEFAULT_FROM_EMAIL, validators=[EmailValidator()]
+    )
 
     cc = models.JSONField(default=list, blank=True)
     bcc = models.JSONField(default=list, blank=True)
