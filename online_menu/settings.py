@@ -15,6 +15,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from datetime import timedelta
 from dotenv import load_dotenv
 
 
@@ -53,7 +54,7 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     # Custom apps
-    "users",
+    "accounts",
     "mailer",
     "monitoring",
 ]
@@ -207,6 +208,17 @@ REST_FRAMEWORK = {
 
 
 # ---------------------------------------------------------------
+# User and Authentication Configuration
+# ---------------------------------------------------------------
+AUTH_USER_MODEL = "accounts.UserModel"
+
+AUTHENTICATION_BACKENDS = [
+    # "authentication.backends.AuthBackend",  # Custom authentication backend
+    "django.contrib.auth.backends.ModelBackend",  # Default Django authentication
+]
+
+
+# ---------------------------------------------------------------
 # Email Configuration
 # ---------------------------------------------------------------
 EMAIL_BACKEND = os.getenv(
@@ -219,6 +231,22 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
+# ---------------------------------------------------------------
+# Simple JWT Configuration
+# ---------------------------------------------------------------
+minutes = int(os.environ.get("ACCESS_TOKEN_LIFETIME", 15))
+hours = int(os.environ.get("REFRESH_TOKEN_LIFETIME", 24))
+
+SIMPLE_JWT = {
+    # Access token lifetime
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=minutes),
+    # Refresh token lifetime
+    "REFRESH_TOKEN_LIFETIME": timedelta(hours=hours),
+    # Authentication header type
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    # Update last login time when refreshing token
+    "UPDATE_LAST_LOGIN": True,
+}
 
 # ---------------------------------------------------------------
 # Logging Configuration
@@ -234,7 +262,7 @@ def ensure_log_dir(log_dir):
 # Define log directories for each app
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 APP_LOG_DIRS = {
-    "users": os.path.join(LOG_DIR, "users"),  # For users app logs
+    "accounts": os.path.join(LOG_DIR, "users"),  # For users app logs
     "mailer": os.path.join(LOG_DIR, "mailer"),  # For mailer app logs
     "monitoring": os.path.join(LOG_DIR, "monitoring"),  # For monitoring app logs
 }
