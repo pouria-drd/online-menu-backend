@@ -14,7 +14,8 @@ def mark_as_verified(modeladmin, request, queryset):
 
 @admin.action(description="Soft-delete selected users")
 def soft_delete_users(modeladmin, request, queryset):
-    queryset.update(status=UserStatus.DELETED)
+    for user in queryset:
+        user.soft_delete()
 
 
 @admin.register(UserModel)
@@ -22,40 +23,67 @@ class UserAdmin(BaseUserAdmin):
     """Advanced admin configuration for UserModel with Groups & Permissions"""
 
     # Fields to display in the list view
-    list_display = (
+    list_display = [
         "email",
         "username",
         "phone_number",
-        "user_role_info",
+        "role",
+        "is_staff",
+        "is_superuser",
         "status_verification_info",
-        "important_dates",
-    )
+        "last_login",
+        "updated_at",
+        "created_at",
+    ]
 
     # Searchable fields
-    search_fields = ("username", "email", "phone_number")
+    search_fields = [
+        "username",
+        "email",
+        "phone_number",
+    ]
 
     # Sidebar filters
-    list_filter = (
+    list_filter = [
         "role",
         "status",
         "verification_status",
         "is_staff",
         "is_superuser",
         "groups",
-    )
-
-    # Read-only fields
-    readonly_fields = ("id", "created_at", "updated_at", "deleted_at")
+    ]
 
     # Default ordering
-    ordering = ("-created_at",)
+    ordering = [
+        "-created_at",
+    ]
+
+    # Read-only fields
+    readonly_fields = [
+        "id",
+        "last_login",
+        "created_at",
+        "updated_at",
+        "deleted_at",
+    ]
 
     # Custom actions
     actions = [mark_as_verified, soft_delete_users]
 
     # Fieldsets for the admin detail page
     fieldsets = (
-        ("Basic Info", {"fields": ("username", "email", "phone_number", "password")}),
+        (
+            "Basic Info",
+            {
+                "fields": (
+                    "id",
+                    "username",
+                    "email",
+                    "phone_number",
+                    "password",
+                )
+            },
+        ),
         (
             "Permissions & Roles",
             {

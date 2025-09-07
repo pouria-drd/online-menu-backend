@@ -3,6 +3,7 @@ from accounts.managers import UserManager
 from accounts.constants import UserRole, UserStatus, UserVerificationStatus
 
 from django.db import models
+from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.validators import EmailValidator, RegexValidator
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
@@ -113,6 +114,11 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     @property
     def is_deleted(self):
         return self.status == UserStatus.DELETED
+
+    def soft_delete(self):
+        self.status = UserStatus.DELETED
+        self.deleted_at = timezone.now()
+        self.save()
 
     def clean(self):
         self.email = self.email.lower().strip()
