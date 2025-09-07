@@ -36,7 +36,7 @@ class LogCenterAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         apps = list_apps(settings)  # [(app, dir), ...]
         selected_app = request.GET.get("app") or (apps[0][0] if apps else None)
-        n = int(request.GET.get("n", 500))
+        n = int(request.GET.get("n", 10))
         selected_level = request.GET.get("level", "")
         selected_file = request.GET.get("file", "")
 

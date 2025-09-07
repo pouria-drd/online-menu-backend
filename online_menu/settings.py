@@ -266,16 +266,11 @@ LOGGING = {
 for app_name, dir_path in APP_LOG_DIRS.items():
     handler_name = f"{app_name}_file"
     LOGGING["handlers"][handler_name] = {
-        "class": "logging.handlers.TimedRotatingFileHandler",
+        "class": "logging.FileHandler",
         "filename": os.path.join(dir_path, f"{app_name}.log"),
         "level": "DEBUG" if DEBUG else "INFO",
-        "when": "midnight",
-        "interval": 1,
-        "backupCount": 0,
         "formatter": "json",
         "encoding": "utf-8",
-        "delay": True,
-        "utc": True,
     }
     LOGGING["loggers"][app_name] = {
         "handlers": ["console", handler_name],

@@ -1,8 +1,5 @@
-import logging
 from django.utils import timezone
 from mailer.services.email_service import EmailService
-
-logger = logging.getLogger("mailer")
 
 
 def send_welcome_email(user, use_template=True):
@@ -38,5 +35,3 @@ def send_welcome_email(user, use_template=True):
             priority="high",
             user=user,
         )
-
-    logger.info(f"Welcome email sent to {user_name}")

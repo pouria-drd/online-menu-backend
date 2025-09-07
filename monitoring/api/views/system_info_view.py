@@ -22,5 +22,6 @@ class SystemInfoView(APIView):
 
     def get(self, request: Request, *args, **kwargs):
         system_info = get_system_info()
-        logger.info("API request received for system info")
+        user = request.user
+        logger.info(f"API request received for system info by {user.username}")
         return Response(system_info)
