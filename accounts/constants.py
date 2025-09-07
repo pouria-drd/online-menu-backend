@@ -19,3 +19,14 @@ class UserVerificationStatus(models.TextChoices):
     EMAIL_VERIFIED = "email_verified", "Email Verified"
     PHONE_VERIFIED = "phone_verified", "Phone Verified"
     VERIFIED = "verified", "Fully Verified"
+
+
+class UserTheme(models.TextChoices):
+    LIGHT = "light", "Light"
+    DARK = "dark", "Dark"
+    SYSTEM = "system", "System"
+
+
+class UserLanguage(models.TextChoices):
+    ENGLISH = "en", "English"
+    PERSIAN = "fa", "Persian"
