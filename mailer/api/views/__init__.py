@@ -1,1 +1,1 @@
-from .test_welcome import test_welcome
+from .test_welcome_view import TestWelcomeView

@@ -20,7 +20,7 @@ urlpatterns = [
     path(os.getenv("ADMIN_URL", "admin"), admin.site.urls),
     # API v1 routes
     path("v1/", include("mailer.api.urls")),
-    path("v1/", include("monitoring.urls")),
+    path("v1/", include("monitoring.api.urls")),
 ]
 
 # Only add base_url once at the root level
