@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils import timezone
 from accounts.models import UserModel
 from django.utils.html import format_html
 from django.utils.formats import date_format
@@ -200,27 +201,26 @@ class UserAdmin(BaseUserAdmin):
     verification_status_colored.short_description = "Verification Status"
 
     def important_dates(self, obj):
+        # convert datetime to localtime
+        last_login = timezone.localtime(obj.last_login) if obj.last_login else None
+        created_at = timezone.localtime(obj.created_at) if obj.created_at else None
+        updated_at = timezone.localtime(obj.updated_at) if obj.updated_at else None
+
+        # helper function to create a badge for a date
+        def date_badge(label, value, color):
+            return format_html(
+                '<span style="display:inline-block; background-color:{}; color:white; padding:4px 6px; border-radius:4px; font-size:11px; text-align:center; line-height:1.2; margin-right:4px;">'
+                "<strong>{}</strong><br>{}</span>",
+                color,
+                label,
+                date_format(value, "SHORT_DATETIME_FORMAT") if value else "—",
+            )
+
         return format_html(
-            '<div style="line-height:1.5; font-size:12px;">'
-            '<div><strong style="color:#17a2b8;">Last login:</strong> {}</div>'
-            '<div><strong style="color:#28a745;">Created:</strong> {}</div>'
-            '<div><strong style="color:#fd7e14;">Updated:</strong> {}</div>'
-            "</div>",
-            (
-                date_format(obj.last_login, "SHORT_DATETIME_FORMAT")
-                if obj.last_login
-                else "—"
-            ),
-            (
-                date_format(obj.created_at, "SHORT_DATETIME_FORMAT")
-                if obj.created_at
-                else "—"
-            ),
-            (
-                date_format(obj.updated_at, "SHORT_DATETIME_FORMAT")
-                if obj.updated_at
-                else "—"
-            ),
+            "{} {} {}",
+            date_badge("Last login", last_login, "#1762b8"),
+            date_badge("Created", created_at, "#28a745"),
+            date_badge("Updated", updated_at, "#6c757d"),
         )
 
-    important_dates.short_description = "Important Dates"
+    important_dates.short_description = "Dates"
