@@ -265,6 +265,7 @@ LOG_DIR = os.path.join(BASE_DIR, "logs")
 APP_LOG_DIRS = {
     "accounts": os.path.join(LOG_DIR, "accounts"),  # For users app logs
     "auth_backend": os.path.join(LOG_DIR, "accounts"),  # For auth backend logs
+    "user_api": os.path.join(LOG_DIR, "accounts"),  # For accounts api logs
     "mailer": os.path.join(LOG_DIR, "mailer"),  # For mailer app logs
     "monitoring": os.path.join(LOG_DIR, "monitoring"),  # For monitoring app logs
 }
