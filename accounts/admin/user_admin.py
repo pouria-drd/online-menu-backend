@@ -1,9 +1,11 @@
 from django.contrib import admin
 from django.utils import timezone
-from accounts.models import UserModel
 from django.utils.html import format_html
 from django.utils.formats import date_format
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+
+from accounts.models import UserModel
+from .user_settings_admin import UserSettingsInline
 from accounts.constants import UserStatus, UserVerificationStatus
 
 
@@ -22,6 +24,9 @@ def soft_delete_users(modeladmin, request, queryset):
 class UserAdmin(BaseUserAdmin):
     """Advanced admin configuration for UserModel with Groups & Permissions"""
 
+    inlines = [
+        UserSettingsInline,
+    ]
     # Fields to display in the list view
     list_display = [
         "email",
