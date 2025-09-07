@@ -2,7 +2,7 @@ from django.utils import timezone
 from mailer.services.email_service import EmailService
 
 
-def send_welcome_email(user):
+def send_welcome_email(user, use_template=True):
     """Send welcome email to user"""
 
     email_service = EmailService()
@@ -18,14 +18,23 @@ def send_welcome_email(user):
         "activation_link": activation_link,
     }
 
-    email_log = email_service.send_email(
-        recipient=user.email,
-        subject=f"Welcome {user_name}!",
-        template_name="welcome",
-        context=context,
-        priority="high",
-        user=user,
-    )
+    if use_template:
+        email_log = email_service.send_templated_email(
+            recipient=user.email,
+            email_type="welcome",
+            context=context,
+            priority="high",
+            user=user,
+        )
+    else:
+        email_log = email_service.send_email(
+            recipient=user.email,
+            subject=f"Welcome {user_name}!",
+            template_name="welcome",
+            context=context,
+            priority="high",
+            user=user,
+        )
 
     print(email_log.status)
     print(email_log.attempts)
