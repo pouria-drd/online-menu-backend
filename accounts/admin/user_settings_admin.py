@@ -38,9 +38,29 @@ class UserSettingsAdmin(admin.ModelAdmin):
         "user__phone_number",
     ]
     readonly_fields = [
+        "id",
         "created_at",
         "updated_at",
     ]
     ordering = [
         "-created_at",
     ]
+
+    fieldsets = (
+        (
+            "Basic Info",
+            {"fields": ("id", "user")},
+        ),
+        (
+            "Appearance",
+            {"fields": ("theme", "language")},
+        ),
+        (
+            "Security",
+            {"fields": ("email_otp_login", "phone_otp_login")},
+        ),
+        (
+            "Important dates",
+            {"fields": ("created_at", "updated_at")},
+        ),
+    )
