@@ -5,6 +5,7 @@ from django.utils.formats import date_format
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from accounts.models import UserModel
+from .user_profile_admin import UserProfileInline
 from .user_settings_admin import UserSettingsInline
 from accounts.constants import UserStatus, UserVerificationStatus
 
@@ -25,6 +26,7 @@ class UserAdmin(BaseUserAdmin):
     """Advanced admin configuration for UserModel with Groups & Permissions"""
 
     inlines = [
+        UserProfileInline,
         UserSettingsInline,
     ]
     # Fields to display in the list view

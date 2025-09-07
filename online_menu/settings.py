@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     "rest_framework",
+    "django_cleanup.apps.CleanupSelectedConfig",
     # Custom apps
     "accounts",
     "mailer",

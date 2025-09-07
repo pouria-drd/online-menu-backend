@@ -21,6 +21,12 @@ class UserVerificationStatus(models.TextChoices):
     VERIFIED = "verified", "Fully Verified"
 
 
+class UserGender(models.TextChoices):
+    MALE = "male", "Male"
+    FEMALE = "female", "Female"
+    OTHER = "other", "Other"
+
+
 class UserTheme(models.TextChoices):
     LIGHT = "light", "Light"
     DARK = "dark", "Dark"
