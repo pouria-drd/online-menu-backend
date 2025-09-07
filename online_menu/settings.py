@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     # Custom apps
+    "users",
     "mailer",
     "monitoring",
 ]
@@ -233,6 +234,7 @@ def ensure_log_dir(log_dir):
 # Define log directories for each app
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 APP_LOG_DIRS = {
+    "users": os.path.join(LOG_DIR, "users"),  # For users app logs
     "mailer": os.path.join(LOG_DIR, "mailer"),  # For mailer app logs
     "monitoring": os.path.join(LOG_DIR, "monitoring"),  # For monitoring app logs
 }
@@ -272,6 +274,8 @@ for app_name, dir_path in APP_LOG_DIRS.items():
         "backupCount": 0,
         "formatter": "json",
         "encoding": "utf-8",
+        "delay": True,
+        "utc": True,
     }
     LOGGING["loggers"][app_name] = {
         "handlers": ["console", handler_name],
