@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from accounts.models import UserSettings
-from accounts.constants import UserVerificationStatus
 
 
 class UserSettingsSerializer(serializers.ModelSerializer):
@@ -33,12 +32,12 @@ class UserSettingsSerializer(serializers.ModelSerializer):
         if not user:
             raise serializers.ValidationError("User instance is required.")
 
-        if (
-            attrs.get("email_otp_login") or attrs.get("phone_otp_login")
-        ) and user.verification_status != UserVerificationStatus.VERIFIED:
-            raise serializers.ValidationError(
-                "OTP login can only be enabled for verified users."
-            )
+        # if (
+        #     attrs.get("email_otp_login") or attrs.get("phone_otp_login")
+        # ) and user.verification_status != UserVerificationStatus.VERIFIED:
+        #     raise serializers.ValidationError(
+        #         "OTP login can only be enabled for verified users."
+        #     )
         return attrs
 
     def update(self, instance, validated_data):

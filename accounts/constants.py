@@ -10,15 +10,8 @@ class UserStatus(models.TextChoices):
 
 class UserRole(models.TextChoices):
     ADMIN = "admin", "Admin"
-    CUSTOMER = "customer", "Customer"
+    USER = "user", "User"
     MENU_OWNER = "menu_owner", "Menu Owner"
-
-
-class UserVerificationStatus(models.TextChoices):
-    UNVERIFIED = "unverified", "Unverified"
-    EMAIL_VERIFIED = "email_verified", "Email Verified"
-    PHONE_VERIFIED = "phone_verified", "Phone Verified"
-    VERIFIED = "verified", "Fully Verified"
 
 
 class UserGender(models.TextChoices):

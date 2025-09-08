@@ -33,6 +33,10 @@ class UserProfileInline(admin.StackedInline):
 
     avatar_tag.short_description = "Avatar"
 
+    def get_queryset(self, request):
+        """Don't fetch the profile separately - use select_related from parent"""
+        return super().get_queryset(request).select_related("user")
+
 
 # Standalone admin for UserProfile
 @admin.register(UserProfile)

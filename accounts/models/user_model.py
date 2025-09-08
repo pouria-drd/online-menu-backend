@@ -1,6 +1,6 @@
 import uuid
 from accounts.managers import UserManager
-from accounts.constants import UserRole, UserStatus, UserVerificationStatus
+from accounts.constants import UserRole, UserStatus
 
 from django.db import models
 from django.utils import timezone
@@ -15,17 +15,6 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    # Email is required for user creation and must be unique
-    email = models.EmailField(
-        unique=True,
-        validators=[
-            EmailValidator(
-                message="Enter a valid email address.",
-                code="invalid_email",
-            )
-        ],
-        help_text="Enter a valid email address.",
-    )
     # Username is required and must be unique
     username = models.CharField(
         unique=True,
@@ -39,19 +28,6 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         ],  # Apply username validator
         help_text="Required. 25 characters or fewer. Letters, digits, and _ only.",
     )
-    # Phone number is required for user creation and must be unique
-    phone_number = models.CharField(
-        max_length=11,
-        unique=True,
-        validators=[
-            RegexValidator(
-                regex=r"^09[0-9]{9}$",
-                message="Enter a valid Iranian phone number (e.g., 09123456789).",
-                code="invalid_phone",
-            )
-        ],  # Apply phone number validator
-        help_text="Enter a valid Iranian phone number (e.g., 09123456789).",
-    )
     # Status for the user (active, banned, deleted)
     status = models.CharField(
         max_length=20,
@@ -59,18 +35,11 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         default=UserStatus.ACTIVE,
         db_index=True,
     )
-    # Role for the user (admin, customer, menu owner)
+    # Role for the user (admin, user, menu owner)
     role = models.CharField(
         max_length=20,
         choices=UserRole.choices,
-        default=UserRole.CUSTOMER,
-        db_index=True,
-    )
-    # Verification status for email and phone
-    verification_status = models.CharField(
-        max_length=20,
-        choices=UserVerificationStatus.choices,
-        default=UserVerificationStatus.UNVERIFIED,
+        default=UserRole.USER,
         db_index=True,
     )
     # Timestamps for user creation and last update
@@ -83,11 +52,7 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
 
     # Set the USERNAME_FIELD to 'username' for login
     USERNAME_FIELD = "username"
-    # Email and Phone number are required for user creation
-    REQUIRED_FIELDS = [
-        "email",
-        "phone_number",
-    ]
+    REQUIRED_FIELDS = []
 
     class Meta:
         """Meta class for the UserModel."""
@@ -96,36 +61,84 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = "Users"
         ordering = ("-created_at",)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation of the user."""
         username = self.username
         return username
 
+    # OPTIMIZED: Use cached properties to avoid repeated queries
     @property
-    def is_staff(self):
-        return self.role == UserRole.ADMIN
+    def primary_email(self):
+        """Get primary email from prefetched data if available, otherwise query"""
+        # If emails are prefetched with primary filter, use first()
+        if hasattr(self, "_prefetched_objects_cache") and "emails" in self._prefetched_objects_cache:  # type: ignore
+            emails = [e for e in self.emails.all() if e.is_primary]  # type: ignore
+            return emails[0].email if emails else None
+
+        # Fallback to database query with select_related optimization
+        email_obj = self.emails.filter(is_primary=True).first()  # type: ignore
+        return email_obj.email if email_obj else None
 
     @property
-    def is_active(self):
-        return self.status == UserStatus.ACTIVE
+    def primary_phone(self):
+        """Get primary phone from prefetched data if available, otherwise query"""
+        # If phones are prefetched with primary filter, use first()
+        if hasattr(self, "_prefetched_objects_cache") and "phones" in self._prefetched_objects_cache:  # type: ignore
+            phones = [p for p in self.phones.all() if p.is_primary]  # type: ignore
+            return phones[0].phone_number if phones else None
+
+        # Fallback to database query with select_related optimization
+        phone_obj = self.phones.filter(is_primary=True).first()  # type: ignore
+        return phone_obj.phone_number if phone_obj else None
 
     @property
-    def is_verified(self):
-        return self.verification_status == UserVerificationStatus.VERIFIED
+    def is_staff(self) -> bool:
+        """Check if the user is staff."""
+        status: bool = self.role == UserRole.ADMIN
+        return status
 
     @property
-    def is_deleted(self):
-        return self.status == UserStatus.DELETED
+    def is_active(self) -> bool:
+        """Check if the user is active."""
+        status: bool = self.status == UserStatus.ACTIVE
+        return status
+
+    @property
+    def email_verified(self) -> bool:
+        """Check if the user's email is verified - optimized version"""
+        if hasattr(self, "_prefetched_objects_cache") and "emails" in self._prefetched_objects_cache:  # type: ignore
+            emails = [e for e in self.emails.all() if e.is_primary]  # type: ignore
+            return emails[0].is_verified if emails else False
+
+        email_obj = self.emails.filter(is_primary=True).first()  # type: ignore
+        return email_obj.is_verified if email_obj else False
+
+    @property
+    def phone_verified(self) -> bool:
+        """Check if the user's phone number is verified - optimized version"""
+        if hasattr(self, "_prefetched_objects_cache") and "phones" in self._prefetched_objects_cache:  # type: ignore
+            phones = [p for p in self.phones.all() if p.is_primary]  # type: ignore
+            return phones[0].is_verified if phones else False
+
+        phone_obj = self.phones.filter(is_primary=True).first()  # type: ignore
+        return phone_obj.is_verified if phone_obj else False
+
+    @property
+    def is_deleted(self) -> bool:
+        """Check if the user is deleted."""
+        # Check if the user is deleted and has a deleted_at timestamp
+        status: bool = self.status == UserStatus.DELETED and self.deleted_at is not None
+        return status
 
     def soft_delete(self):
+        """Soft delete the user, marking it as deleted."""
         self.status = UserStatus.DELETED
         self.deleted_at = timezone.now()
         self.save()
 
     def clean(self):
-        self.email = self.email.lower().strip()
+        """Clean the user data by removing whitespace and converting to lowercase."""
         self.username = self.username.lower().strip()
-        self.phone_number = self.phone_number.strip()
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -138,14 +151,16 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         token = RefreshToken.for_user(self)
 
         # Add custom claims to the token
-        token["email"] = self.email
         token["username"] = self.username
-        token["phoneNumber"] = self.phone_number
+        token["primaryEmail"] = self.primary_email
+        token["primaryPhoneNumber"] = self.primary_phone
+
+        token["emailVerified"] = self.email_verified
+        token["phoneVerified"] = self.phone_verified
 
         token["updatedAt"] = self.updated_at
         token["createdAt"] = self.created_at
 
         token["role"] = self.role
-        token["verificationStatus"] = self.verification_status
 
         return token

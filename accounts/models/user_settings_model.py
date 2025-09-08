@@ -2,7 +2,7 @@ import uuid
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from accounts.constants import UserLanguage, UserTheme, UserVerificationStatus
+from accounts.constants import UserLanguage, UserTheme
 
 
 User = get_user_model()

@@ -14,6 +14,10 @@ class UserSettingsInline(admin.StackedInline):
         ("Timestamps", {"fields": ("created_at", "updated_at")}),
     )
 
+    def get_queryset(self, request):
+        """Don't fetch the settings separately - use select_related from parent"""
+        return super().get_queryset(request).select_related("user")
+
 
 @admin.register(UserSettings)
 class UserSettingsAdmin(admin.ModelAdmin):
