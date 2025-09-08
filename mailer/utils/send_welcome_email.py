@@ -8,6 +8,7 @@ def send_welcome_email(user, use_template=True):
     email_service = EmailService()
 
     user_name = user.username
+    user_email = user.primary_email
     activation_link = "https://pouria-drd.ir"
     current_year = timezone.now().year
 
@@ -20,7 +21,7 @@ def send_welcome_email(user, use_template=True):
 
     if use_template:
         email_log = email_service.send_templated_email(
-            recipient=user.email,
+            recipient=user_email,
             email_type="welcome",
             context=context,
             priority="high",
@@ -28,7 +29,7 @@ def send_welcome_email(user, use_template=True):
         )
     else:
         email_log = email_service.send_email(
-            recipient=user.email,
+            recipient=user_email,
             subject=f"Welcome {user_name}!",
             template_name="welcome",
             context=context,
