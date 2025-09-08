@@ -73,8 +73,6 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         default=UserVerificationStatus.UNVERIFIED,
         db_index=True,
     )
-    # Boolean flags for account status
-    is_staff = models.BooleanField(default=False)
     # Timestamps for user creation and last update
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -102,6 +100,10 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         """String representation of the user."""
         username = self.username
         return username
+
+    @property
+    def is_staff(self):
+        return self.role == UserRole.ADMIN
 
     @property
     def is_active(self):
@@ -138,7 +140,7 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         # Add custom claims to the token
         token["email"] = self.email
         token["username"] = self.username
-        token["isAdmin"] = self.is_staff
+        token["phoneNumber"] = self.phone_number
 
         token["updatedAt"] = self.updated_at
         token["createdAt"] = self.created_at

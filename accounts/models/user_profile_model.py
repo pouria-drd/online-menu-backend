@@ -22,7 +22,7 @@ def avatar_image_upload_to(instance, filename):
     new_filename = f"{uuid.uuid4()}{ext}"
 
     # Use the card to card's username for the folder structure
-    return f"accounts/avatars/{instance.user.username}/{new_filename}"
+    return f"accounts/avatars/{instance.user.id}/{new_filename}"
 
 
 @cleanup.select

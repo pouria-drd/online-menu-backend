@@ -35,7 +35,6 @@ class UserAdmin(BaseUserAdmin):
         "username",
         "phone_number",
         "role",
-        "is_staff",
         "is_superuser",
         "status_verification_info",
         "last_login",
@@ -55,7 +54,6 @@ class UserAdmin(BaseUserAdmin):
         "role",
         "status",
         "verification_status",
-        "is_staff",
         "is_superuser",
         "groups",
     ]
