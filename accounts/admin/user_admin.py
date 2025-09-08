@@ -24,6 +24,9 @@ class UserAdmin(BaseUserAdmin):
         UserSettingsInline,
     ]
 
+    list_per_page = 25
+    list_max_show_all = 100
+
     # All the previous optimization code here...
     list_display = [
         "username",
@@ -253,6 +256,3 @@ class UserAdmin(BaseUserAdmin):
             },
         ),
     )
-
-    list_per_page = 10
-    list_max_show_all = 25
