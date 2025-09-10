@@ -1,6 +1,9 @@
 from django.db import models
 
 
+MAX_AVATAR_SIZE = 2 * 1024 * 1024  # 2 MB
+
+
 class UserStatus(models.TextChoices):
     ACTIVE = "active", "Active"
     BANNED = "banned", "Banned"

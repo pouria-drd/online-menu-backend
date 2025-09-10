@@ -8,7 +8,7 @@ class UserProfileInline(admin.StackedInline):
     model = UserProfile
     can_delete = False
     verbose_name_plural = "Profile"
-    readonly_fields = ("profile_completion", "created_at", "updated_at", "avatar_tag")
+    readonly_fields = ("created_at", "updated_at", "avatar_tag")
     fields = (
         "avatar_tag",
         "avatar",
@@ -17,7 +17,6 @@ class UserProfileInline(admin.StackedInline):
         "bio",
         "gender",
         "birthday",
-        "profile_completion",
         "created_at",
         "updated_at",
     )
@@ -44,7 +43,6 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = [
         "user",
         "full_name",
-        "profile_completion_formatted",
         "gender",
         "birthday",
         "updated_at",
@@ -66,7 +64,6 @@ class UserProfileAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "avatar_tag",
-        "profile_completion",
     ]
     ordering = [
         "-created_at",
@@ -96,7 +93,6 @@ class UserProfileAdmin(admin.ModelAdmin):
                 "fields": (
                     "gender",
                     "birthday",
-                    "profile_completion",
                 )
             },
         ),
@@ -115,11 +111,6 @@ class UserProfileAdmin(admin.ModelAdmin):
         return f"{obj.first_name or ''} {obj.last_name or ''}".strip()
 
     full_name.short_description = "Full Name"
-
-    def profile_completion_formatted(self, obj):
-        return f"{obj.profile_completion}%"
-
-    profile_completion_formatted.short_description = "Profile Completion"
 
     def avatar_preview(self, obj):
         """Show avatar thumbnail in list_display (non-clickable)."""

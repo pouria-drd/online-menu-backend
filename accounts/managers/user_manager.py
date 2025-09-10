@@ -5,13 +5,15 @@ from django.contrib.auth.models import BaseUserManager
 class UserManager(BaseUserManager):
     """Custom manager for the UserModel, handling user and superuser creation."""
 
-    def create_user(self, username, password=None, **extra_fields):
-        if not username:
-            raise ValueError("Users must have a username")
+    def create_user(self, username, email, password=None, **extra_fields):
+        if not username or not email:
+            raise ValueError("Users must have a username and email")
 
         username = username.lower()
+        # Normalize email
+        email = self.normalize_email(email)
 
-        user = self.model(username=username, **extra_fields)
+        user = self.model(username=username, email=email, **extra_fields)
         if password:
             user.set_password(password)
         else:
@@ -19,8 +21,10 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, password=None, **extra_fields):
-        user = self.create_user(username=username, password=password, **extra_fields)
+    def create_superuser(self, username, email, password=None, **extra_fields):
+        user = self.create_user(
+            username=username, email=email, password=password, **extra_fields
+        )
         user.role = UserRole.ADMIN
         user.status = UserStatus.ACTIVE
         user.is_superuser = True

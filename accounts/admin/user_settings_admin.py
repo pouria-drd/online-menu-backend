@@ -10,7 +10,7 @@ class UserSettingsInline(admin.StackedInline):
     readonly_fields = ("created_at", "updated_at")
     fieldsets = (
         ("Appearance", {"fields": ("theme", "language")}),
-        ("Security", {"fields": ("email_otp_login", "phone_otp_login")}),
+        ("Security", {"fields": ("email_2fa", "email_verified")}),
         ("Timestamps", {"fields": ("created_at", "updated_at")}),
     )
 
@@ -25,21 +25,20 @@ class UserSettingsAdmin(admin.ModelAdmin):
         "user",
         "theme",
         "language",
-        "email_otp_login",
-        "phone_otp_login",
+        "email_2fa",
+        "email_verified",
         "updated_at",
         "created_at",
     ]
     list_filter = [
         "theme",
         "language",
-        "email_otp_login",
-        "phone_otp_login",
+        "email_2fa",
+        "email_verified",
     ]
     search_fields = [
         "user__email",
         "user__username",
-        "user__phone_number",
     ]
     readonly_fields = [
         "id",
@@ -61,7 +60,7 @@ class UserSettingsAdmin(admin.ModelAdmin):
         ),
         (
             "Security",
-            {"fields": ("email_otp_login", "phone_otp_login")},
+            {"fields": ("email_2fa", "email_verified")},
         ),
         (
             "Important dates",

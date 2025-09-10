@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.generics import RetrieveUpdateAPIView
 
-from accounts.utils import get_optimized_user_queryset
 from accounts.api.serializers import (
     UserSerializer,
     UserProfileSerializer,
@@ -19,6 +18,7 @@ class UserAPIView(RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     http_method_names = ["get", "put", "patch"]
+
     throttle_scope = "user"
     throttle_classes = [ScopedRateThrottle]
 
@@ -35,8 +35,7 @@ class UserAPIView(RetrieveUpdateAPIView):
         return super().patch(request, *args, **kwargs)
 
     def get_object(self):
-        # Use the utility to get only active users with optimized queries
-        return get_optimized_user_queryset().get(id=self.request.user.id)  # type: ignore
+        return self.request.user
 
 
 class UserProfileAPIView(RetrieveUpdateAPIView):

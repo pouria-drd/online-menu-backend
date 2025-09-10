@@ -21,18 +21,16 @@ class UserSettings(models.Model):
         max_length=10, choices=UserTheme.choices, default=UserTheme.SYSTEM
     )
     # Security
-    email_otp_login = models.BooleanField(
+    email_2fa = models.BooleanField(
         default=False,
-        help_text="Allow login using email OTP if user is fully verified.",
-    )
-    phone_otp_login = models.BooleanField(
-        default=False,
-        help_text="Allow login using phone OTP if user is fully verified.",
+        help_text="Allow 2FA for email login",
     )
     # Localization
     language = models.CharField(
         max_length=20, choices=UserLanguage.choices, default=UserLanguage.PERSIAN
     )
+    # Boolean fields for user status
+    email_verified = models.BooleanField(default=False)
     # Date & Time
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -48,24 +46,21 @@ class UserSettings(models.Model):
         ]
 
     def clean(self):
-        if (self.email_otp_login or self.phone_otp_login) and not self.can_enable_otp():
-            raise ValidationError("OTP login can only be enabled for verified users.")
+        if (self.email_2fa) and not self.can_enable_2fa():
+            raise ValidationError("2FA can only be enabled for verified email (.etc)")
 
-    def can_enable_otp(self) -> bool:
-        """Check if user can enable OTP login"""
-        return self.user.verification_status == UserVerificationStatus.VERIFIED  # type: ignore
+    def can_enable_2fa(self) -> bool:
+        """Check if user can enable 2FA"""
+        return self.email_verified
 
-    def set_otp(self, method: str, value: bool) -> bool:
-        """Enable or disable OTP login method ('email' or 'phone')"""
-        if not self.can_enable_otp():
-            return False
+    def set_2fa(self, method: str, value: bool):
+        """Enable or disable 2FA for email"""
+        if not self.can_enable_2fa():
+            raise ValidationError("2FA can only be enabled for verified email (.etc)")
 
         if method == "email":
-            self.email_otp_login = value
-        elif method == "phone":
-            self.phone_otp_login = value
+            self.email_2fa = value
         else:
-            raise ValueError("Invalid OTP method. Use 'email' or 'phone'.")
+            raise ValueError("Invalid OTP method. Use 'email'.")
 
-        self.save(update_fields=[f"{method}_otp_login"])
-        return True
+        self.save(update_fields=[f"{method}_2fa"])
