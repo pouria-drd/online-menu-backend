@@ -1,3 +1,3 @@
 from .user_serializer import UserSerializer
-from .user_profile_serializer import UserProfileSerializer
-from .user_settings_serializer import UserSettingsSerializer
+from .profile_serializer import ProfileSerializer
+from .settings_serializer import SettingsSerializer

@@ -214,8 +214,8 @@ REST_FRAMEWORK = {
 AUTH_USER_MODEL = "accounts.UserModel"
 
 AUTHENTICATION_BACKENDS = [
-    # "accounts.backends.AuthBackend",  # Custom authentication backend
-    "django.contrib.auth.backends.ModelBackend",  # Default Django authentication
+    "accounts.backends.AuthBackend",  # Custom authentication backend
+    # "django.contrib.auth.backends.ModelBackend",  # Default Django authentication
 ]
 
 

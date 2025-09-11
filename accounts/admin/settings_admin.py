@@ -1,9 +1,9 @@
 from django.contrib import admin
-from accounts.models import UserSettings
+from accounts.models import SettingsModel
 
 
-class UserSettingsInline(admin.StackedInline):
-    model = UserSettings
+class SettingsInline(admin.StackedInline):
+    model = SettingsModel
     can_delete = False
     verbose_name_plural = "Settings"
     fk_name = "user"
@@ -19,8 +19,8 @@ class UserSettingsInline(admin.StackedInline):
         return super().get_queryset(request).select_related("user")
 
 
-@admin.register(UserSettings)
-class UserSettingsAdmin(admin.ModelAdmin):
+@admin.register(SettingsModel)
+class SettingsAdmin(admin.ModelAdmin):
     list_display = [
         "user",
         "theme",

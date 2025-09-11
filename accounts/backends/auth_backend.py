@@ -1,7 +1,7 @@
 import logging
-from accounts.models import UserModel
 from django.db.models import Q
 from django.http import HttpRequest
+from accounts.models import UserModel
 from django.contrib.auth.backends import BaseBackend
 
 

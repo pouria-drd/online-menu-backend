@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from accounts.models import UserSettings
+from accounts.models import SettingsModel
 
 
-class UserSettingsSerializer(serializers.ModelSerializer):
+class SettingsSerializer(serializers.ModelSerializer):
     """
     Serializer for user-specific settings.
     Handles validation for enabling/disabling email 2FA,
@@ -21,7 +21,7 @@ class UserSettingsSerializer(serializers.ModelSerializer):
     createdAt = serializers.DateTimeField(source="created_at", read_only=True)
 
     class Meta:
-        model = UserSettings
+        model = SettingsModel
         fields = [
             "id",
             "theme",

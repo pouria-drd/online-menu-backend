@@ -1,11 +1,11 @@
 from django.contrib import admin
-from accounts.models import UserProfile
+from accounts.models import ProfileModel
 from django.utils.html import format_html
 
 
 # Inline for UserProfile (editable inside User admin)
-class UserProfileInline(admin.StackedInline):
-    model = UserProfile
+class ProfileInline(admin.StackedInline):
+    model = ProfileModel
     can_delete = False
     verbose_name_plural = "Profile"
     readonly_fields = ("created_at", "updated_at", "avatar_tag")
@@ -38,8 +38,8 @@ class UserProfileInline(admin.StackedInline):
 
 
 # Standalone admin for UserProfile
-@admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
+@admin.register(ProfileModel)
+class ProfileAdmin(admin.ModelAdmin):
     list_display = [
         "user",
         "full_name",

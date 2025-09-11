@@ -8,7 +8,7 @@ from accounts.constants import UserLanguage, UserTheme
 User = get_user_model()
 
 
-class UserSettings(models.Model):
+class SettingsModel(models.Model):
     """
     Model for storing user settings
     """

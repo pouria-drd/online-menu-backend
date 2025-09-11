@@ -1,12 +1,11 @@
 from django.contrib import admin
-from django.db.models import Prefetch
 from django.utils.html import format_html
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from accounts.models import UserModel
 from accounts.constants import UserStatus
-from .user_profile_admin import UserProfileInline
-from .user_settings_admin import UserSettingsInline
+from .profile_admin import ProfileInline
+from .settings_admin import SettingsInline
 
 
 @admin.action(description="Soft-delete selected users")
@@ -20,8 +19,8 @@ class UserAdmin(BaseUserAdmin):
     """FULLY OPTIMIZED admin configuration for UserModel"""
 
     inlines = [
-        UserProfileInline,
-        UserSettingsInline,
+        ProfileInline,
+        SettingsInline,
     ]
 
     list_per_page = 25

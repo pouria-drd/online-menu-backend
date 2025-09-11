@@ -1,5 +1,5 @@
 import logging
-from accounts.api.serializers import UserSerializer
+from accounts.api.serializers import ProfileSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.generics import RetrieveUpdateAPIView
@@ -8,27 +8,27 @@ from rest_framework.generics import RetrieveUpdateAPIView
 logger = logging.getLogger("user_api")
 
 
-class UserAPIView(RetrieveUpdateAPIView):
-    """OPTIMIZED API endpoint for user profile"""
+class ProfileAPIView(RetrieveUpdateAPIView):
+    """API endpoint for user profile"""
 
-    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer
     http_method_names = ["get", "put", "patch"]
 
     throttle_scope = "user"
     throttle_classes = [ScopedRateThrottle]
 
+    def get_object(self):
+        return self.request.user.profile  # type: ignore
+
     def get(self, request, *args, **kwargs):
-        logger.info(f"User {request.user.username} requested their info")
+        logger.info(f"User {request.user.username} requested their profile")
         return super().get(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
-        logger.info(f"User {request.user.username} updated their info")
+        logger.info(f"User {request.user.username} updated their profile")
         return super().put(request, *args, **kwargs)
 
     def patch(self, request, *args, **kwargs):
-        logger.info(f"User {request.user.username} updated their info")
+        logger.info(f"User {request.user.username} updated their profile")
         return super().patch(request, *args, **kwargs)
-
-    def get_object(self):
-        return self.request.user

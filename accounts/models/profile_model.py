@@ -23,7 +23,7 @@ def avatar_image_upload_to(instance, filename: str) -> str:
 
 
 @cleanup.select
-class UserProfile(models.Model):
+class ProfileModel(models.Model):
     """
     Extended user profile with avatar support and validations.
     """

@@ -1,11 +1,11 @@
 import os
 from django.utils import timezone
 from rest_framework import serializers
-from accounts.models import UserProfile
+from accounts.models import ProfileModel
 from accounts.constants import MAX_AVATAR_SIZE
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for user profile.
     - Maps snake_case model fields to camelCase API fields.
@@ -40,7 +40,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = UserProfile
+        model = ProfileModel
         fields = [
             "id",
             "bio",

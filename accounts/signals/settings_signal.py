@@ -2,12 +2,13 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.contrib.auth import get_user_model
 
-from accounts.models import UserSettings
+from accounts.models import SettingsModel
 
 User = get_user_model()
 
 
 @receiver(post_save, sender=User)
-def create_user_settings(sender, instance, created, **kwargs):
+def create_settings(sender, instance, created, **kwargs):
+    """Create user settings on user creation"""
     if created:
-        UserSettings.objects.create(user=instance)
+        SettingsModel.objects.create(user=instance)

@@ -1,3 +1,3 @@
 from .user_admin import UserAdmin
-from .user_profile_admin import UserProfileAdmin
-from .user_settings_admin import UserSettingsAdmin
+from .profile_admin import ProfileAdmin
+from .settings_admin import SettingsAdmin
