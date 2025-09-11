@@ -23,7 +23,7 @@ class SettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SettingsModel
         fields = [
-            "id",
+            # "id",
             "theme",
             "language",
             "email2fa",

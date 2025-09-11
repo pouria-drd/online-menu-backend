@@ -42,7 +42,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfileModel
         fields = [
-            "id",
+            # "id",
             "bio",
             "gender",
             "birthday",
