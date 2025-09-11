@@ -9,20 +9,19 @@ class LoginSerializer(serializers.Serializer):
 
     username = serializers.CharField(
         min_length=3,
-        max_length=25,
+        max_length=100,
         error_messages={
-            "required": "username is required",
-            "blank": "username cannot be blank",
-            "min_length": "username must be at least 3 characters",
-            "max_length": "username must be at most 25 characters",
+            "required": "Username or email is required",
+            "blank": "Username or email cannot be blank",
         },
     )
     password = serializers.CharField(
         required=True,
         write_only=True,
+        style={"input_type": "password"},
         error_messages={
-            "required": "password is required",
-            "blank": "password cannot be blank",
+            "required": "Password is required",
+            "blank": "Password cannot be blank",
         },
     )
 
@@ -33,10 +32,7 @@ class LoginSerializer(serializers.Serializer):
         user = authenticate(username=username, password=password)
         if user is None or not user.is_active:
             raise serializers.ValidationError(
-                {
-                    "code": "invalid_credentials",
-                    "detail": "Invalid username or password.",
-                }
+                {"detail": "Invalid username or password."}
             )
         data["user"] = user
         return data

@@ -1,9 +1,11 @@
 import logging
 from django.db.models import Q
 from django.http import HttpRequest
-from accounts.models import UserModel
+from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import BaseBackend
+from django.contrib.auth.models import update_last_login
 
+UserModel = get_user_model()
 
 logger = logging.getLogger("auth_backend")
 
@@ -30,13 +32,19 @@ class AuthBackend(BaseBackend):
             )
             return None
         except UserModel.MultipleObjectsReturned:
-
+            logger.error(
+                f"Multiple users with same username or email found: {username}",
+                extra={"username": username},
+            )
             return None
 
-        if user.check_password(password):
+        if user.check_password(password) and user.is_active:
+            # update last login and send a security alert to user
+            update_last_login(None, user)  # type: ignore
+            user_name = user.username
             logger.info(
-                f"User {username} logged in successfully",
-                extra={"username": username},
+                f"User {user_name} logged in successfully",
+                extra={"username": user_name},
             )
             return user
         else:

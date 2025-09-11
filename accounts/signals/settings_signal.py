@@ -11,4 +11,4 @@ User = get_user_model()
 def create_settings(sender, instance, created, **kwargs):
     """Create user settings on user creation"""
     if created:
-        SettingsModel.objects.create(user=instance)
+        SettingsModel.objects.get_or_create(user=instance)

@@ -28,8 +28,8 @@ class UserAdmin(BaseUserAdmin):
 
     # All the previous optimization code here...
     list_display = [
-        "email",
         "username",
+        "email",
         "user_role_info",
         "status_formatted",
         "last_login",

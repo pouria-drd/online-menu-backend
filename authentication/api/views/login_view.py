@@ -4,7 +4,6 @@ from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from django.contrib.auth.models import update_last_login
 from rest_framework.throttling import ScopedRateThrottle
 from authentication.api.serializers import LoginSerializer
 
@@ -27,9 +26,6 @@ class LoginAPIView(APIView):
             token = user.generate_jwt_token()
             refresh_token = str(token)
             access_token = str(token.access_token)
-
-            # update last login and send a security alert to user
-            update_last_login(None, user)  # type: ignore
 
             logger.info(
                 f"User {user.username} logged in successfully via login api",

@@ -11,4 +11,4 @@ User = get_user_model()
 def create_profile(sender, instance, created, **kwargs):
     """Create user profile on user creation"""
     if created:
-        ProfileModel.objects.create(user=instance)
+        ProfileModel.objects.get_or_create(user=instance)
