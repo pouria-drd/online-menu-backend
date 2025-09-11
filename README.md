@@ -29,8 +29,8 @@
 1. **Clone the Repository:**
 
     ```bash
-    git clone https://github.com/pouria-drd/online-menu-bakcend.git
-    cd online_menu_api
+    git clone https://github.com/pouria-drd/online-menu-backend.git
+    cd online-menu-backend
     ```
 
 2. **Create and Activate a Virtual Environment:**
