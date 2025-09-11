@@ -1,6 +1,6 @@
-# Online Menu API
+# Online Menu Backend
 
-**Online Menu API** is a Django-based API designed to help restaurants and coffee shops manage their online menus. This API allows restaurant owners to create and manage menu categories and products efficiently. Customers can browse menu categories and view product details through a well-structured interface.
+**Online Menu Backend** is a Django-based API designed to help restaurants and coffee shops manage their online menus. This API allows restaurant owners to create and manage menu categories and products efficiently. Customers can browse menu categories and view product details through a well-structured interface.
 
 ## Table of Contents
 
