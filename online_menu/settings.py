@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "django_cleanup.apps.CleanupSelectedConfig",
     # Custom apps
     "accounts",
+    "authentication",
     "mailer",
     "monitoring",
 ]
@@ -214,7 +215,7 @@ REST_FRAMEWORK = {
 AUTH_USER_MODEL = "accounts.UserModel"
 
 AUTHENTICATION_BACKENDS = [
-    "accounts.backends.AuthBackend",  # Custom authentication backend
+    "authentication.backends.AuthBackend",  # Custom authentication backend
     # "django.contrib.auth.backends.ModelBackend",  # Default Django authentication
 ]
 
@@ -263,9 +264,8 @@ def ensure_log_dir(log_dir):
 # Define log directories for each app
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 APP_LOG_DIRS = {
-    "accounts": os.path.join(LOG_DIR, "accounts"),  # For users app logs
-    "auth_backend": os.path.join(LOG_DIR, "accounts"),  # For auth backend logs
     "user_api": os.path.join(LOG_DIR, "accounts"),  # For accounts api logs
+    "auth_backend": os.path.join(LOG_DIR, "authentication"),  # For auth backend logs
     "mailer": os.path.join(LOG_DIR, "mailer"),  # For mailer app logs
     "monitoring": os.path.join(LOG_DIR, "monitoring"),  # For monitoring app logs
 }
