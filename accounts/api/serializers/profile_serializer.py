@@ -20,8 +20,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         source="last_name", required=False, allow_blank=True
     )
 
-    updatedAt = serializers.DateTimeField(read_only=True)
-    createdAt = serializers.DateTimeField(read_only=True)
+    # updatedAt = serializers.DateTimeField(source="updated_at", read_only=True)
+    # createdAt = serializers.DateTimeField(source="created_at", read_only=True)
 
     # Avatar: writable for upload
     avatar = serializers.ImageField(
@@ -49,8 +49,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "firstName",
             "lastName",
             "avatar",
-            "updatedAt",
-            "createdAt",
+            # "updatedAt",
+            # "createdAt",
         ]
         read_only_fields = [
             "id",

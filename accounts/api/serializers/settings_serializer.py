@@ -17,8 +17,8 @@ class SettingsSerializer(serializers.ModelSerializer):
     )
     emailVerified = serializers.BooleanField(source="email_verified", read_only=True)
 
-    updatedAt = serializers.DateTimeField(source="updated_at", read_only=True)
-    createdAt = serializers.DateTimeField(source="created_at", read_only=True)
+    # updatedAt = serializers.DateTimeField(source="updated_at", read_only=True)
+    # createdAt = serializers.DateTimeField(source="created_at", read_only=True)
 
     class Meta:
         model = SettingsModel
@@ -28,8 +28,8 @@ class SettingsSerializer(serializers.ModelSerializer):
             "language",
             "email2fa",
             "emailVerified",
-            "updatedAt",
-            "createdAt",
+            # "updatedAt",
+            # "createdAt",
         ]
         read_only_fields = [
             "id",
