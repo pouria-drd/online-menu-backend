@@ -118,12 +118,11 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         token = RefreshToken.for_user(self)
 
         # Add custom claims to the token
+        token["role"] = self.role
         token["email"] = self.email
         token["username"] = self.username
 
-        token["updatedAt"] = self.updated_at
-        token["createdAt"] = self.created_at
-
-        token["role"] = self.role
+        token["updatedAt"] = str(self.updated_at)
+        token["createdAt"] = str(self.created_at)
 
         return token
