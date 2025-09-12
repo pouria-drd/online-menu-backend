@@ -1,5 +1,5 @@
 from django.utils import timezone
-from mailer.services.email_service import EmailService
+from mailer.services import EmailService
 
 
 def send_welcome_email(user, use_template=True):

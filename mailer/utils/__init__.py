@@ -1,1 +1,2 @@
 from .send_welcome_email import send_welcome_email
+from .send_admin_new_user_alert import send_admin_new_user_alert

@@ -1,0 +1,10 @@
+🚨 New User Registered
+
+A new user just joined your platform.
+
+👤 Username: {{ username }}
+📧 Email: {{ email }}
+🎭 Role: {{ role }}
+🕒 Registered At: {{ registered_at }}
+
+Please review this account if needed.
