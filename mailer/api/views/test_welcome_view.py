@@ -1,15 +1,10 @@
-import logging
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from mailer.utils import send_welcome_email_task
 from rest_framework.permissions import IsAdminUser
 from rest_framework.throttling import ScopedRateThrottle
-
-from mailer.utils import send_welcome_email
-
-
-logger = logging.getLogger("mailer")
 
 
 class TestWelcomeView(APIView):
@@ -25,6 +20,5 @@ class TestWelcomeView(APIView):
         User = get_user_model()
         user = User.objects.get(username="admin")
         user_name = user.username
-        send_welcome_email(user)
-        logger.info(f"Welcome email sent to {user_name}")
+        send_welcome_email_task(user, use_template=False)
         return Response({"message": f"Welcome Email Sent to {user_name}"})

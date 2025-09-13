@@ -147,14 +147,20 @@ class EmailService:
         return email_logs
 
     def send_templated_email(
-        self, recipient: str, email_type: str, context: Dict[str, Any], **kwargs
+        self, recipient: str, name: str, context: Dict[str, Any], **kwargs
     ) -> EmailLogModel:
         """
         Send an email with a template from the database
+
+        Arguments:
+            recipient (str): Recipient email address
+            name (str): Template name
+            context (Dict[str, Any]): Context for the template
+            **kwargs: Additional keyword arguments
         """
-        template: EmailTemplateModel = EmailTemplateModel.objects.get_by_type(email_type)  # type: ignore
+        template: EmailTemplateModel = EmailTemplateModel.objects.get_by_name(name)  # type: ignore
         if not template:
-            raise ValueError(f"No active template found for type: {email_type}")
+            raise ValueError(f"No active template found for name: {name}")
 
         # Render template with context
         rendered_subject = self.template_service.render_string(

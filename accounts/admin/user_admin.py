@@ -107,11 +107,11 @@ class UserAdmin(BaseUserAdmin):
                 "classes": ("wide",),
                 "fields": (
                     "role",
+                    "status",
                     "email",
                     "username",
                     "password1",
                     "password2",
-                    "status",
                 ),
             },
         ),
