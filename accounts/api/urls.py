@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import UserAPIView, ProfileAPIView, SettingsAPIView
 
-base = "user"
+base = "account"
 
 urlpatterns = [
     path(f"{base}/", UserAPIView.as_view(), name=f"{base}"),
