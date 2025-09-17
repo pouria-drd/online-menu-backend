@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.throttling import ScopedRateThrottle
 
 from authentication.models import OTPModel
+from authentication.constants import UseCase
 from authentication.utils import send_email_verification_code
 from authentication.api.serializers import RegisterSerializer
 
@@ -29,7 +30,9 @@ class RegisterView(generics.CreateAPIView):
             user: User = serializer.save()
 
             # Send email verification code
-            otp_code, otp_obj = OTPModel.create_otp(user)
+            otp_code, otp_obj = OTPModel.create_otp(
+                user, usecase=UseCase.EMAIL_VERIFICATION
+            )
             send_email_verification_code(user, otp_code)
 
             logger.info(
