@@ -43,7 +43,7 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     status = models.CharField(
         max_length=20,
         choices=UserStatus.choices,
-        default=UserStatus.ACTIVE,
+        default=UserStatus.INACTIVE,
         db_index=True,
     )
     # Role for the user (admin, user, menu owner)
