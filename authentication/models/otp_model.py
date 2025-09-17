@@ -28,9 +28,12 @@ class OTPModel(models.Model):
     # Is OTP code used
     used = models.BooleanField(default=False)
     # Timestamps
-    expires_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
-    last_attempted = models.DateTimeField(auto_now=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+    last_attempted = models.DateTimeField(default=timezone.now())
+    expires_at = models.DateTimeField(
+        default=timezone.now() + timedelta(minutes=OTP_EXPIRY_MINUTES)
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -40,6 +43,9 @@ class OTPModel(models.Model):
             models.Index(fields=["user", "usecase"]),
             models.Index(fields=["expires_at"]),
         ]
+
+    def __str__(self) -> str:
+        return f"{self.user.username} - {self.usecase}"
 
     @property
     def is_expired(self) -> bool:
@@ -58,12 +64,13 @@ class OTPModel(models.Model):
     def mark_used(self):
         """Mark the OTP code as used."""
         self.used = True
-        self.save(update_fields=["used"])
+        self.used_at = timezone.now()
+        self.save(update_fields=["used", "used_at"])
 
     def increment_attempts(self):
         """Increment the number of attempts."""
         self.attempts += 1
-        # self.last_attempted = timezone.now()
+        self.last_attempted = timezone.now()
         self.save(update_fields=["attempts", "last_attempted"])
 
     def validate(self, otp_code: str) -> bool:
@@ -83,11 +90,6 @@ class OTPModel(models.Model):
         otp_code = generate_otp_code(length)
         code_hash = hash_otp(otp_code)
         # Create OTP object
-        otp_obj = cls.objects.create(
-            user=user,
-            usecase=usecase,
-            code_hash=code_hash,
-            expires_at=timezone.now() + timedelta(minutes=OTP_EXPIRY_MINUTES),
-        )
+        otp_obj = cls.objects.create(user=user, usecase=usecase, code_hash=code_hash)
         # Return OTP code and OTP object
         return otp_code, otp_obj
