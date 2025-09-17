@@ -11,19 +11,27 @@ class OTPAdmin(admin.ModelAdmin):
         "max_attempts",
         "used",
         "is_expired_display",
+        "used_at",
         "created_at",
         "expires_at",
+        "last_attempted",
     )
     list_filter = ("usecase", "used", "created_at", "expires_at")
     search_fields = ("user__username", "user__email", "user__phone_number")
     ordering = ("-created_at",)
-    readonly_fields = ("code_hash", "created_at", "last_attempted", "expires_at")
+    readonly_fields = (
+        "code_hash",
+        "created_at",
+        "last_attempted",
+        "expires_at",
+        "used_at",
+    )
 
     def is_expired_display(self, obj):
         return obj.is_expired
 
     is_expired_display.boolean = True
-    is_expired_display.short_description = "Expired?"
+    is_expired_display.short_description = "Expired"
 
     actions = ["delete_expired"]
 

@@ -42,7 +42,6 @@ class RegisterView(generics.CreateAPIView):
 
             return Response(
                 data={
-                    "otp_id": otp_obj.id,
                     "message": f"User {user.username} registered successfully",
                 },
                 status=status.HTTP_201_CREATED,
