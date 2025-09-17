@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>✅ Verify Your Email Address</title>
+  <style>
+    body, table, td, a { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { margin: 0; padding: 0; background-color: #f9fafb; color: #333; }
+    .container { max-width: 600px; margin: 40px auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+    .header { background: #092e20; color: #fff; text-align: center; padding: 20px; font-size: 20px; font-weight: bold; }
+    .content { padding: 24px; font-size: 15px; line-height: 1.6; text-align: center; }
+    .otp-box { background: #f3f4f6; padding: 16px; border-radius: 6px; margin: 20px 0; font-size: 24px; font-weight: bold; letter-spacing: 4px; color: #092e20; display: inline-block; }
+    .footer { text-align: center; font-size: 12px; color: #6b7280; padding: 16px; border-top: 1px solid #e5e7eb; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">✅ Verify Your Email</div>
+    <div class="content">
+      <p>Hello <strong>{{ username }}</strong>,</p>
+      <p>Thank you for registering on our platform.</p>
+      <p>Please use the following code to verify your email address:</p>
+
+      <div class="otp-box">
+        {{ verification_code }}
+      </div>
+
+      <p>This code will expire in <strong>{{ expiry_minutes }}</strong> minutes.</p>
+      <p>If you didn’t create this account, you can safely ignore this email.</p>
+    </div>
+    <div class="footer">
+      &copy; {{ current_year }} DRD Email Service
+    </div>
+  </div>
+</body>
+</html>

@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 from django.contrib.auth import get_user_model
 
@@ -7,7 +6,6 @@ from mailer.tasks import send_bulk_emails_task
 
 
 User = get_user_model()
-logger = logging.getLogger("mailer")
 
 
 def send_new_user_alert(user):

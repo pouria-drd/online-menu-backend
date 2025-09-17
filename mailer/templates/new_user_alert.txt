@@ -8,3 +8,7 @@ A new user just joined your platform.
 🕒 Registered At: {{ registered_at }}
 
 Please review this account if needed.
+
+--
+
+DRD Email Service

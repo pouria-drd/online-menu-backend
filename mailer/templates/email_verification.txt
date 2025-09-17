@@ -1,0 +1,15 @@
+✅ Verify Your Email Address
+
+Hello {{ username }},
+
+Thank you for registering on our platform.  
+Here is your verification code:
+
+🔑 Verification Code: {{ verification_code }}
+
+This code will expire in {{ expiry_minutes }} minutes.
+
+If you didn’t create this account, you can safely ignore this email.
+
+--  
+@ {{ current_year }} DRD Email Service
