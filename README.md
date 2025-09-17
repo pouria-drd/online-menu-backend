@@ -109,8 +109,9 @@
     MAX_RETRY_ATTEMPTS="3"
 
     # ---------------------------------------------------------------
-    # JWT (JSON Web Token) Configuration
+    # JWT & AUTH Configuration
     # ---------------------------------------------------------------
+    OTP_EXPIRY_MINUTES="5"  # in minutes
     ACCESS_TOKEN_LIFETIME="15"   # expire after n minutes
     REFRESH_TOKEN_LIFETIME="24"  # expire after n hours
 
