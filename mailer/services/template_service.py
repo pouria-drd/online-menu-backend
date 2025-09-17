@@ -17,13 +17,13 @@ class TemplateService:
         """
         try:
             # Render HTML
-            html_template = f"emails/{template_name}.html"
+            html_template = f"{template_name}.html"
             html_content = render_to_string(html_template, context)
 
             # Render Plain Text (if not provided)
             plain_content = ""
             try:
-                plain_template = f"emails/{template_name}.txt"
+                plain_template = f"{template_name}.txt"
                 plain_content = render_to_string(plain_template, context)
             except:
                 # Extract plain text from HTML if not provided
