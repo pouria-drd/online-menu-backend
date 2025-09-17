@@ -10,7 +10,7 @@ class SettingsInline(admin.StackedInline):
     readonly_fields = ("created_at", "updated_at")
     fieldsets = (
         ("Appearance", {"fields": ("theme", "language")}),
-        ("Security", {"fields": ("email_2fa", "email_verified")}),
+        ("Security", {"fields": ("email_verified", "email_2fa_enabled")}),
         ("Timestamps", {"fields": ("created_at", "updated_at")}),
     )
 
@@ -23,17 +23,14 @@ class SettingsInline(admin.StackedInline):
 class SettingsAdmin(admin.ModelAdmin):
     list_display = [
         "user",
-        "theme",
-        "language",
-        "email_2fa",
         "email_verified",
+        "last_2fa_setup_at",
         "updated_at",
         "created_at",
     ]
     list_filter = [
         "theme",
         "language",
-        "email_2fa",
         "email_verified",
     ]
     search_fields = [
@@ -52,18 +49,41 @@ class SettingsAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             "Basic Info",
-            {"fields": ("id", "user")},
+            {
+                "fields": (
+                    "id",
+                    "user",
+                )
+            },
         ),
         (
             "Appearance",
-            {"fields": ("theme", "language")},
+            {
+                "fields": (
+                    "theme",
+                    "language",
+                )
+            },
         ),
         (
             "Security",
-            {"fields": ("email_2fa", "email_verified")},
+            {
+                "fields": (
+                    "primary_2fa_method",
+                    "email_verified",
+                    "email_2fa_enabled",
+                    "require_2fa_for_sensitive_actions",
+                )
+            },
         ),
         (
             "Important dates",
-            {"fields": ("created_at", "updated_at")},
+            {
+                "fields": (
+                    "last_2fa_setup_at",
+                    "updated_at",
+                    "created_at",
+                )
+            },
         ),
     )

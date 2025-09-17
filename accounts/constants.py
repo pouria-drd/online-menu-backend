@@ -32,3 +32,12 @@ class UserTheme(models.TextChoices):
 class UserLanguage(models.TextChoices):
     ENGLISH = "en", "English"
     PERSIAN = "fa", "Persian"
+
+
+class TwoFactorMethod(models.TextChoices):
+    """Available 2FA methods"""
+
+    EMAIL = "email", "Email"
+    # Future: Add SMS, TOTP, WEBAUTHN, BACKUP_CODES, etc.
+    # PHONE = "phone", "Phone"
+    # TOTP = "totp", "TOTP (Authenticator App)"
