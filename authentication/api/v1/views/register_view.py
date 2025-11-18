@@ -47,7 +47,7 @@ class RegisterStep1APIView(APIView):
             logger.info(f"OTP sent to {email}")
             return Response(
                 data={
-                    "status": True,
+                    "success": True,
                     "result": {
                         "email": email,
                     },
@@ -112,7 +112,7 @@ class RegisterStep2APIView(APIView):
                 logger.info(f"User created: {new_user}")
                 return Response(
                     data={
-                        "status": True,
+                        "success": True,
                         "result": {
                             "verified": True,
                             "new_user": new_user.email,
