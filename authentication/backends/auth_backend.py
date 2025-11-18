@@ -7,7 +7,7 @@ from django.contrib.auth.models import update_last_login
 
 UserModel = get_user_model()
 
-logger = logging.getLogger("auth_backend")
+logger = logging.getLogger(__name__)
 
 
 class AuthBackend(BaseBackend):

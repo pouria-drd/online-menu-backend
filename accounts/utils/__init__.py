@@ -1,1 +1,0 @@
-from .send_new_user_alert import send_new_user_alert

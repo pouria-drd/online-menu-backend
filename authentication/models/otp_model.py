@@ -1,95 +1,168 @@
-import hmac
 import uuid
-from django.db import models
+import hmac
+import random
+import secrets
 from datetime import timedelta
+from django.db import models
+from django.db.models import F, Q
 from django.utils import timezone
-from django.contrib.auth import get_user_model
+from django.core.validators import EmailValidator, RegexValidator
 
-from authentication.utils import generate_otp_code, hash_otp
-from authentication.constants import OTP_EXPIRY_MINUTES, UseCase
-
-User = get_user_model()
+from authentication.utils import hash_code
+from authentication.constants import (
+    OTP_LENGTH,
+    OTP_EXPIRY_MINUTES,
+    MAX_VERIFY_ATTEMPTS,
+    OTPType,
+    ChannelType,
+)
 
 
 class OTPModel(models.Model):
-    """OTP Model for storing OTP codes and validations."""
+    """Secure OTP model supporting both email and phone channels."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="otps")
-    usecase = models.CharField(
-        max_length=20, choices=UseCase.choices, default=UseCase.EMAIL_2FA
+
+    channel = models.CharField(
+        max_length=10,
+        choices=ChannelType.choices,
+        default=ChannelType.EMAIL,
+        help_text="Delivery channel for OTP (email or phone).",
     )
-    # Store hashed OTP
-    code_hash = models.CharField(max_length=256)
-    # Number of verification attempts
-    attempts = models.PositiveIntegerField(default=0)
-    # Max allowed attempts
-    max_attempts = models.PositiveIntegerField(default=3)
-    # Is OTP code used
-    used = models.BooleanField(default=False)
-    # Timestamps
+
+    email = models.EmailField(
+        null=True,
+        blank=True,
+        validators=[EmailValidator(message="Enter a valid email address.")],
+        help_text="Target email for OTP delivery (required if channel=email).",
+    )
+
+    phone_number = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        validators=[
+            RegexValidator(
+                regex=r"^\+?\d{10,15}$",
+                message="Enter a valid international phone number.",
+            )
+        ],
+        help_text="Target phone number for OTP delivery (required if channel=phone).",
+    )
+
+    otp_type = models.CharField(
+        max_length=61,
+        choices=OTPType.choices,
+        default=OTPType.LOGIN,
+        help_text="Purpose of the OTP (login, register, etc.).",
+    )
+
+    salt = models.CharField(max_length=255)
+    code_hash = models.CharField(max_length=255)
+
+    is_used = models.BooleanField(default=False)
+    attempts = models.PositiveSmallIntegerField(default=0)
+
+    updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    used_at = models.DateTimeField(null=True, blank=True)
-    last_attempted = models.DateTimeField(default=timezone.now())
-    expires_at = models.DateTimeField(
-        default=timezone.now() + timedelta(minutes=OTP_EXPIRY_MINUTES)
-    )
 
     class Meta:
+        verbose_name = "OTP Code"
+        verbose_name_plural = "OTP Codes"
         ordering = ["-created_at"]
-        verbose_name = "OTP code"
-        verbose_name_plural = "OTP codes"
         indexes = [
-            models.Index(fields=["user", "usecase"]),
-            models.Index(fields=["expires_at"]),
+            models.Index(fields=["channel", "-created_at"]),
+            models.Index(fields=["email"]),
+            models.Index(fields=["phone_number"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["channel", "otp_type", "is_used"],
+                name="unique_active_otp_per_channel_type",
+                condition=Q(is_used=False),
+            )
         ]
 
-    def __str__(self) -> str:
-        return f"{self.user.username} - {self.usecase}"
+    def __str__(self):
+        target = self.email or self.phone_number
+        return f"{self.channel.upper()} OTP for {target} ({self.otp_type})"
+
+    # === Business Logic ===
 
     @property
-    def is_expired(self) -> bool:
-        """Check if the OTP has expired."""
-        return timezone.now() > self.expires_at
+    def expired(self) -> bool:
+        return timezone.now() > self.created_at + timedelta(minutes=OTP_EXPIRY_MINUTES)
 
     @property
-    def can_attempt(self) -> bool:
-        """Check if the OTP has attempts left."""
-        return self.attempts < self.max_attempts and not self.is_expired
+    def remaining_attempts(self) -> int:
+        return max(0, MAX_VERIFY_ATTEMPTS - self.attempts)
 
-    def check_otp(self, otp_code) -> bool:
-        """Compare the OTP code with the stored OTP code."""
-        return hmac.compare_digest(self.code_hash, hash_otp(otp_code))
+    @property
+    def can_verify(self) -> bool:
+        return not self.is_used and not self.expired and self.remaining_attempts > 0
+
+    def check_code(self, code: str) -> bool:
+        if not self.can_verify:
+            return False
+
+        OTPModel.objects.filter(pk=self.pk).update(attempts=F("attempts") + 1)
+        self.refresh_from_db(fields=["attempts"])
+
+        valid = hmac.compare_digest(hash_code(code, self.salt), self.code_hash)
+        if valid:
+            self.mark_used()
+        return valid
 
     def mark_used(self):
-        """Mark the OTP code as used."""
-        self.used = True
-        self.used_at = timezone.now()
-        self.save(update_fields=["used", "used_at"])
-
-    def increment_attempts(self):
-        """Increment the number of attempts."""
-        self.attempts += 1
-        self.last_attempted = timezone.now()
-        self.save(update_fields=["attempts", "last_attempted"])
-
-    def validate(self, otp_code: str) -> bool:
-        """Validate the OTP code."""
-        if self.used or self.is_expired or not self.can_attempt:
-            return False
-        if not self.check_otp(otp_code):
-            self.increment_attempts()
-            return False
-        self.mark_used()
-        return True
+        if not self.is_used:
+            self.is_used = True
+            self.save(update_fields=["is_used"])
 
     @classmethod
-    def create_otp(cls, user, usecase: UseCase = UseCase.EMAIL_2FA, length: int = 5):
-        """Create a new OTP code."""
-        # Generate OTP code and hash it
-        otp_code = generate_otp_code(length)
-        code_hash = hash_otp(otp_code)
-        # Create OTP object
-        otp_obj = cls.objects.create(user=user, usecase=usecase, code_hash=code_hash)
-        # Return OTP code and OTP object
-        return otp_code, otp_obj
+    def generate_otp(
+        cls,
+        target: str,
+        otp_type: OTPType = OTPType.LOGIN,
+        channel: ChannelType = ChannelType.EMAIL,
+    ) -> tuple["OTPModel", str]:
+        """
+        Create and return an OTP instance and the plain code (for sending).
+        """
+        # Clean up old OTPs
+        filter_kwargs = {"channel": channel}
+        if channel == ChannelType.EMAIL:
+            filter_kwargs["email"] = target  # type: ignore
+        elif channel == ChannelType.PHONE:
+            filter_kwargs["phone_number"] = target  # type: ignore
+        else:
+            raise ValueError("Invalid channel type")
+
+        cls.objects.filter(**filter_kwargs).filter(
+            Q(is_used=True)
+            | Q(created_at__lt=timezone.now() - timedelta(minutes=OTP_EXPIRY_MINUTES))
+        ).delete()
+
+        # Prevent duplicates
+        active = cls.objects.filter(
+            **filter_kwargs, is_used=False, otp_type=otp_type
+        ).first()
+        if active and not active.expired:
+            raise ValueError(
+                "An active OTP already exists. Please wait before requesting a new one."
+            )
+
+        # Generate code
+        code = f"{random.randint(0, 10**OTP_LENGTH - 1):0{OTP_LENGTH}d}"
+        salt = secrets.token_hex(16)
+        code_hash = hash_code(code, salt)
+
+        otp = cls.objects.create(
+            channel=channel,
+            email=target if channel == ChannelType.EMAIL else None,
+            phone_number=target if channel == ChannelType.PHONE else None,
+            otp_type=otp_type,
+            salt=salt,
+            code_hash=code_hash,
+        )
+
+        return otp, code

@@ -1,14 +1,25 @@
-import os
 from django.db import models
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+from online_menu_backend.env import (
+    ENV_MAX_VERIFY_ATTEMPTS,
+    ENV_OTP_EXPIRY_MINUTES,
+    ENV_OTP_LENGTH,
+)
+
+OTP_IN_CONSOLE = True
+OTP_LENGTH = ENV_OTP_LENGTH
+OTP_EXPIRY_MINUTES = ENV_OTP_EXPIRY_MINUTES
+MAX_VERIFY_ATTEMPTS = ENV_MAX_VERIFY_ATTEMPTS
 
 
-OTP_EXPIRY_MINUTES = int(os.getenv("OTP_EXPIRY_MINUTES", 5))  # in minutes
+class OTPType(models.TextChoices):
+    LOGIN = "login", "Login"
+    REGISTER = "register", "Register"
+    RESET_PASSWORD = "reset_password", "Reset password"
+    VERIFY_EMAIL = "verify_email", "Verify email"
+    VERIFY_PHONE = "verify_phone", "Verify phone"
 
 
-class UseCase(models.TextChoices):
-    EMAIL_2FA = "email_2fa", "Email 2FA"
-    EMAIL_VERIFICATION = "email_verification", "Email Verification"
+class ChannelType(models.TextChoices):
+    EMAIL = "email", "Email"
+    PHONE = "phone", "Phone Number"
