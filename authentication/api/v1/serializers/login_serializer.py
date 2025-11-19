@@ -32,7 +32,7 @@ class LoginSerializer(serializers.Serializer):
         user = authenticate(username=username, password=password)
         if user is None or not user.is_active:
             raise serializers.ValidationError(
-                {"username": "Invalid username or password."},
+                {"form": "Invalid credentials"},
                 code="invalid_credentials",
             )
         data["user"] = user
