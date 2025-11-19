@@ -12,8 +12,7 @@ class OTPAdmin(admin.ModelAdmin):
     """Admin panel for OTP management and debugging."""
 
     list_display = (
-        "channel",
-        "target_display",
+        "email",
         "otp_type",
         "created_at",
         "is_used",
@@ -22,14 +21,12 @@ class OTPAdmin(admin.ModelAdmin):
         "remaining_attempts_display",
     )
 
-    search_fields = ("email", "phone_number")
-    list_filter = ("channel", "otp_type", "is_used", "created_at")
+    search_fields = ("email",)
+    list_filter = ("otp_type", "is_used", "created_at")
 
     readonly_fields = (
         "id",
-        "channel",
         "email",
-        "phone_number",
         "otp_type",
         "salt",
         "code_hash",
@@ -51,9 +48,7 @@ class OTPAdmin(admin.ModelAdmin):
             "OTP Information",
             {
                 "fields": (
-                    "channel",
                     "email",
-                    "phone_number",
                     "otp_type",
                     "is_used",
                     "attempts",
@@ -83,20 +78,6 @@ class OTPAdmin(admin.ModelAdmin):
             },
         ),
     )
-
-    # -------------------------
-    # Computed / display fields
-    # -------------------------
-
-    def target_display(self, obj):
-        """Display target email or phone neatly."""
-        if obj.channel == "email":
-            return obj.email or "-"
-        elif obj.channel == "phone":
-            return obj.phone_number or "-"
-        return "-"
-
-    target_display.short_description = "Target"
 
     def expired_status(self, obj):
         """Return a colored tag for OTP expiration."""

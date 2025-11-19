@@ -11,7 +11,6 @@ from authentication.constants import (
     OTP_EXPIRY_MINUTES,
     OTP_LENGTH,
     OTPType,
-    ChannelType,
 )
 
 
@@ -107,9 +106,7 @@ class RegisterStep1Serializer(serializers.Serializer, UniqueUsernameEmailMixin):
 
         # Generate OTP
         otp_instance, otp_code = OTPModel.generate_otp(
-            target=email,
-            otp_type=OTPType.REGISTER,
-            channel=ChannelType.EMAIL,
+            email=email, otp_type=OTPType.REGISTER
         )
 
         # Send OTP via email
@@ -179,10 +176,7 @@ class RegisterStep2Serializer(serializers.Serializer, UniqueUsernameEmailMixin):
         # Lookup latest unused OTP
         otp = (
             OTPModel.objects.filter(
-                email=email,
-                is_used=False,
-                otp_type=OTPType.REGISTER,
-                channel=ChannelType.EMAIL,
+                email=email, is_used=False, otp_type=OTPType.REGISTER
             )
             .order_by("-created_at")
             .first()

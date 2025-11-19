@@ -44,9 +44,10 @@ class UserManager(BaseUserManager):
         )
 
         # Set the user role to admin and status to active
+        user.is_superuser = True
+        user.email_verified = True
         user.role = UserRole.ADMIN
         user.status = UserStatus.ACTIVE
-        user.is_superuser = True
 
         user.save(using=self._db)
 

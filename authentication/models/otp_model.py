@@ -6,7 +6,7 @@ from datetime import timedelta
 from django.db import models
 from django.db.models import F, Q
 from django.utils import timezone
-from django.core.validators import EmailValidator, RegexValidator
+from django.core.validators import EmailValidator
 
 from authentication.utils import hash_code
 from authentication.constants import (
@@ -14,40 +14,19 @@ from authentication.constants import (
     OTP_EXPIRY_MINUTES,
     MAX_VERIFY_ATTEMPTS,
     OTPType,
-    ChannelType,
 )
 
 
 class OTPModel(models.Model):
-    """Secure OTP model supporting both email and phone channels."""
+    """Secure OTP model supporting email."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    channel = models.CharField(
-        max_length=10,
-        choices=ChannelType.choices,
-        default=ChannelType.EMAIL,
-        help_text="Delivery channel for OTP (email or phone).",
-    )
-
     email = models.EmailField(
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
         validators=[EmailValidator(message="Enter a valid email address.")],
-        help_text="Target email for OTP delivery (required if channel=email).",
-    )
-
-    phone_number = models.CharField(
-        max_length=20,
-        null=True,
-        blank=True,
-        validators=[
-            RegexValidator(
-                regex=r"^\+?\d{10,15}$",
-                message="Enter a valid international phone number.",
-            )
-        ],
-        help_text="Target phone number for OTP delivery (required if channel=phone).",
+        help_text="Target email for OTP delivery.",
     )
 
     otp_type = models.CharField(
@@ -71,21 +50,18 @@ class OTPModel(models.Model):
         verbose_name_plural = "OTP Codes"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["channel", "-created_at"]),
             models.Index(fields=["email"]),
-            models.Index(fields=["phone_number"]),
         ]
         constraints = [
             models.UniqueConstraint(
-                fields=["channel", "otp_type", "is_used"],
-                name="unique_active_otp_per_channel_type",
+                fields=["email", "otp_type", "is_used"],
+                name="unique_active_otp_per_email_type",
                 condition=Q(is_used=False),
             )
         ]
 
     def __str__(self):
-        target = self.email or self.phone_number
-        return f"{self.channel.upper()} OTP for {target} ({self.otp_type})"
+        return f"OTP for {self.email} ({self.otp_type})"
 
     # === Business Logic ===
 
@@ -120,32 +96,22 @@ class OTPModel(models.Model):
 
     @classmethod
     def generate_otp(
-        cls,
-        target: str,
-        otp_type: OTPType = OTPType.LOGIN,
-        channel: ChannelType = ChannelType.EMAIL,
+        cls, email: str, otp_type: OTPType = OTPType.LOGIN
     ) -> tuple["OTPModel", str]:
         """
         Create and return an OTP instance and the plain code (for sending).
         """
-        # Clean up old OTPs
-        filter_kwargs = {"channel": channel}
-        if channel == ChannelType.EMAIL:
-            filter_kwargs["email"] = target  # type: ignore
-        elif channel == ChannelType.PHONE:
-            filter_kwargs["phone_number"] = target  # type: ignore
-        else:
-            raise ValueError("Invalid channel type")
-
-        cls.objects.filter(**filter_kwargs).filter(
+        # Check if OTP already exists
+        cls.objects.filter(email=email).filter(
             Q(is_used=True)
             | Q(created_at__lt=timezone.now() - timedelta(minutes=OTP_EXPIRY_MINUTES))
         ).delete()
 
         # Prevent duplicates
         active = cls.objects.filter(
-            **filter_kwargs, is_used=False, otp_type=otp_type
+            email=email, is_used=False, otp_type=otp_type
         ).first()
+
         if active and not active.expired:
             raise ValueError(
                 "An active OTP already exists. Please wait before requesting a new one."
@@ -157,9 +123,7 @@ class OTPModel(models.Model):
         code_hash = hash_code(code, salt)
 
         otp = cls.objects.create(
-            channel=channel,
-            email=target if channel == ChannelType.EMAIL else None,
-            phone_number=target if channel == ChannelType.PHONE else None,
+            email=email,
             otp_type=otp_type,
             salt=salt,
             code_hash=code_hash,
