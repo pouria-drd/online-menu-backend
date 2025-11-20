@@ -1,22 +1,21 @@
-from datetime import timedelta
 from django.contrib import admin
-from django.utils import timezone
 from django.utils.html import format_html
 
-from core.constants import OTP_EXPIRY_MINUTES
 from authentication.models import OTPModel
+from authentication.selectors import OTPSelectors
+from authentication.repositories import OTPRepository
 
 
 @admin.register(OTPModel)
 class OTPAdmin(admin.ModelAdmin):
-    """Admin panel for OTP management and debugging."""
+    """Admin panel for OTP management using service/repository/selector layers."""
 
     list_display = (
         "email",
         "otp_type",
         "created_at",
         "is_used",
-        "expired_status",
+        "status_display",
         "attempts",
         "remaining_attempts_display",
     )
@@ -34,8 +33,7 @@ class OTPAdmin(admin.ModelAdmin):
         "attempts",
         "created_at",
         "updated_at",
-        "expired_status",
-        "expires_at",
+        "status_display",
         "remaining_attempts_display",
     )
 
@@ -53,17 +51,14 @@ class OTPAdmin(admin.ModelAdmin):
                     "is_used",
                     "attempts",
                     "remaining_attempts_display",
-                    "expired_status",
+                    "status_display",
                 ),
             },
         ),
         (
             "Security Details",
             {
-                "fields": (
-                    "salt",
-                    "code_hash",
-                ),
+                "fields": ("salt", "code_hash"),
                 "classes": ("collapse",),
             },
         ),
@@ -73,60 +68,62 @@ class OTPAdmin(admin.ModelAdmin):
                 "fields": (
                     "created_at",
                     "updated_at",
-                    "expires_at",
+                    "expires_at_display",
                 ),
             },
         ),
     )
 
-    def expired_status(self, obj):
-        """Return a colored tag for OTP expiration."""
+    # -----------------------------------------
+    # Custom display fields (using selectors)
+    # -----------------------------------------
+
+    def status_display(self, obj):
+        """Display OTP status with colors (using selectors)."""
+
         if obj.is_used:
-            return format_html('<span style="color: #999;">Used</span>')
-        if obj.expired:
-            return format_html('<span style="color: #e74c3c;">Expired</span>')
-        return format_html('<span style="color: #27ae60;">Active</span>')
+            return format_html('<span style="color:#888;">Used</span>')
 
-    expired_status.short_description = "Status"
-    expired_status.admin_order_field = "created_at"
+        if OTPSelectors.is_expired(obj):
+            return format_html('<span style="color:#e74c3c;">Expired</span>')
 
-    def expires_at(self, obj):
-        """Show when OTP expires."""
-        return obj.created_at + timedelta(minutes=OTP_EXPIRY_MINUTES)
+        return format_html('<span style="color:#27ae60;">Active</span>')
 
-    expires_at.short_description = "Expires at"
+    status_display.short_description = "Status"
 
     def remaining_attempts_display(self, obj):
-        """Show attempts left before lockout."""
-        return obj.remaining_attempts
+        """Read from model property (clean access)."""
+        return OTPSelectors.remaining_attempts(obj)
 
-    remaining_attempts_display.short_description = "Remaining Attempts"
+    remaining_attempts_display.short_description = "Attempts Left"
 
-    # -------------------------
-    # Admin actions
-    # -------------------------
+    # -----------------------------------------
+    # Admin Actions (using Service / Repo)
+    # -----------------------------------------
 
-    actions = ["mark_all_used", "delete_expired"]
+    actions = ["action_mark_used", "action_delete_expired"]
 
     @admin.action(description="Mark selected OTPs as used")
-    def mark_all_used(self, request, queryset):
-        count = queryset.update(is_used=True)
-        self.message_user(request, f"{count} OTPs marked as used ✅")
+    def action_mark_used(self, request, queryset):
+        count = 0
+        for otp in queryset:
+            OTPRepository.mark_used(otp)
+            count += 1
+        self.message_user(request, f"{count} OTPs marked as used ✓")
 
     @admin.action(description="Delete expired OTPs")
-    def delete_expired(self, request, queryset):
-        now = timezone.now()
-        expired_qs = queryset.filter(
-            created_at__lt=now - timedelta(minutes=OTP_EXPIRY_MINUTES)
-        )
-        count = expired_qs.count()
-        expired_qs.delete()
+    def action_delete_expired(self, request, queryset):
+        expired_qs = [otp for otp in queryset if OTPSelectors.is_expired(otp)]
+        count = len(expired_qs)
+
+        for otp in expired_qs:
+            otp.delete()
+
         self.message_user(request, f"{count} expired OTPs deleted 🧹")
 
-    # -------------------------
+    # -----------------------------------------
     # Permissions
-    # -------------------------
+    # -----------------------------------------
 
     def has_add_permission(self, request):
-        """Prevent adding OTPs manually."""
-        return False
+        return False  # Prevent manual addition
