@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from accounts.models import UserModel
 
 # from .profile_admin import ProfileInline
-# from .settings_admin import SettingsInline
+from .settings_admin import SettingsInline
 
 
 # @admin.action(description="Soft-delete selected users")
@@ -19,10 +19,10 @@ from accounts.models import UserModel
 class UserAdmin(BaseUserAdmin):
     """Admin configuration for UserModel"""
 
-    # inlines = [
-    #     ProfileInline,
-    #     SettingsInline,
-    # ]
+    inlines = [
+        # ProfileInline,
+        SettingsInline,
+    ]
 
     # actions = [soft_delete_users]
 
