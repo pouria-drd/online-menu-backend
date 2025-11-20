@@ -1,7 +1,7 @@
 from typing import Optional
 from django.utils import timezone
 
-from core.constants import UserRole
+from core.constants import UserRole, UserStatus
 from accounts.models import UserModel, ProfileModel, SettingsModel
 
 
@@ -30,7 +30,9 @@ class UserRepository:
     @staticmethod
     def get_user_by_email(email: str) -> Optional[UserModel]:
         """Return user by email, or None."""
-        return UserModel.objects.filter(email=email.lower().strip()).first()
+        return UserModel.objects.filter(
+            email=email.lower().strip(), status=UserStatus.ACTIVE
+        ).first()
 
     @staticmethod
     def update_last_login(user: UserModel):

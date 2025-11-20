@@ -1,9 +1,7 @@
 from rest_framework import serializers
 from django.core.validators import EmailValidator
-from rest_framework.exceptions import ValidationError
 
-from core.constants import OTPType
-from authentication.services import AuthService, OTPService
+from core.constants import OTP_LENGTH
 
 
 class LoginSerializer(serializers.Serializer):
@@ -30,29 +28,6 @@ class LoginSerializer(serializers.Serializer):
         },
     )
 
-    def validate(self, attrs):
-        email = attrs.get("email")
-        password = attrs.get("password")
-
-        try:
-            user = AuthService.login_user(email=email, password=password)
-
-        except ValidationError:
-            raise serializers.ValidationError(
-                {"form": "Invalid credentials"},
-                code="invalid_credentials",
-            )
-
-        token = AuthService.generate_jwt_token(user)
-        refresh_token = str(token)
-        access_token = str(token.access_token)
-
-        return {
-            "user": user,
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-        }
-
 
 class SendLoginOTPSerializer(serializers.Serializer):
     """
@@ -68,16 +43,31 @@ class SendLoginOTPSerializer(serializers.Serializer):
         },
     )
 
-    def validate(self, attrs):
-        email = attrs.get("email")
 
-        try:
-            OTPService.generate_otp(email=email, otp_type=OTPType.LOGIN)
+class VerifyLoginOTPSerializer(serializers.Serializer):
+    """
+    Serializer for verifying a user via OTP.
+    """
 
-        except ValidationError:
-            raise serializers.ValidationError(
-                {"form": "Failed to send OTP. Please try again."},
-                code="otp_send_failed",
-            )
+    email = serializers.EmailField(
+        required=True,
+        validators=[EmailValidator],
+        error_messages={
+            "required": "Email is required",
+            "blank": "Email cannot be blank",
+        },
+    )
 
-        return email
+    code = serializers.CharField(
+        required=True,
+        write_only=True,
+        min_length=OTP_LENGTH,
+        max_length=OTP_LENGTH,
+        style={"input_type": "password"},
+        error_messages={
+            "required": "Code is required",
+            "blank": "Code cannot be blank",
+            "min_length": f"Code must be at least {OTP_LENGTH} characters long.",
+            "max_length": f"Code must be at most {OTP_LENGTH} characters long.",
+        },
+    )
