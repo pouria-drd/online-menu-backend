@@ -18,7 +18,7 @@ urlpatterns = [
     path(base_url + admin_url, admin.site.urls),
     # API v1 routes
     # path(base_url + "v1/users/", include("users.api.v1.urls")),
-    # path(base_url + "v1/authentication/", include("authentication.api.v1.urls")),
+    path(base_url + "v1/authentication/", include("authentication.api.v1.urls")),
 ]
 
 
