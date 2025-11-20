@@ -59,3 +59,13 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     def __str__(self) -> str:
         """String representation of the user."""
         return self.email
+
+    @property
+    def is_staff(self) -> bool:
+        """Check if the user is staff."""
+        status: bool = (
+            self.is_superuser
+            or self.role == UserRole.ADMIN
+            or self.role == UserRole.SUPERUSER
+        )
+        return status
