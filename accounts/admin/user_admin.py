@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from accounts.models import UserModel
-from core.constants import UserStatus
 
 # from .profile_admin import ProfileInline
 # from .settings_admin import SettingsInline
