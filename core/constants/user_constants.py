@@ -1,10 +1,8 @@
 from django.db import models
 
-from online_menu_backend.env import ENV_MAX_AVATAR_SIZE_MB
 
-
-MAX_AVATAR_SIZE_MB = ENV_MAX_AVATAR_SIZE_MB
-MAX_AVATAR_SIZE = MAX_AVATAR_SIZE_MB * 1024 * 1024  # 2 MB
+MAX_AVATAR_SIZE_MB = 2
+MAX_AVATAR_SIZE = 2 * 1024 * 1024
 VALID_AVATAR_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"]
 
 
@@ -16,8 +14,9 @@ class UserStatus(models.TextChoices):
 
 
 class UserRole(models.TextChoices):
-    ADMIN = "admin", "Admin"
     USER = "user", "User"
+    ADMIN = "admin", "Admin"
+    SUPERUSER = "superuser", "Superuser"
 
 
 class UserTheme(models.TextChoices):

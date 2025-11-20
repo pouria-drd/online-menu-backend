@@ -1,6 +1,6 @@
 from django.db import models
 
-from online_menu_backend.env import (
+from online_menu_backend.settings import (
     ENV_MAX_VERIFY_ATTEMPTS,
     ENV_OTP_EXPIRY_MINUTES,
     ENV_OTP_LENGTH,
