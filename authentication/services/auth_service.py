@@ -9,6 +9,7 @@ from accounts.repositories import UserRepository
 
 
 class AuthService:
+    """Service layer for auth-related business logic."""
 
     @staticmethod
     def login_user(email: str, password: str) -> UserModel:
