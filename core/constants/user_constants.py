@@ -9,7 +9,6 @@ VALID_AVATAR_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"]
 class UserStatus(models.TextChoices):
     ACTIVE = "active", "Active"
     BANNED = "banned", "Banned"
-    DELETED = "deleted", "Deleted"
     INACTIVE = "inactive", "Inactive"
 
 

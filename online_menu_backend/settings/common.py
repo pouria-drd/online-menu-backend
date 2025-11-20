@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = ENV_SECRET_KEY
 
 
-AUTH_USER_MODEL = "users.UserModel"
+AUTH_USER_MODEL = "accounts.UserModel"
 
 
 # ---------------------------------------------------------------
@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_cleanup.apps.CleanupSelectedConfig",
     # Custom apps
-    "users",
+    "accounts",
     # "authentication",
 ]
 
