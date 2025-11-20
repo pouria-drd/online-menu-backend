@@ -1,6 +1,5 @@
 import uuid
 from django.db import models
-from django.utils import timezone
 from django.core.validators import EmailValidator
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
