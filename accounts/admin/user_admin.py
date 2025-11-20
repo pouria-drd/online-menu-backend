@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 from accounts.models import UserModel
 
-# from .profile_admin import ProfileInline
+from .profile_admin import ProfileInline
 from .settings_admin import SettingsInline
 
 
@@ -20,7 +20,7 @@ class UserAdmin(BaseUserAdmin):
     """Admin configuration for UserModel"""
 
     inlines = [
-        # ProfileInline,
+        ProfileInline,
         SettingsInline,
     ]
 

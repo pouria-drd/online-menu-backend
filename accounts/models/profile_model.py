@@ -27,7 +27,7 @@ def avatar_image_upload_to(instance, filename: str) -> str:
     new_filename = f"{uuid.uuid4()}{ext}"
 
     # Use the project's name for the folder structure
-    return f"users/avatars/{instance.user.id}/{new_filename}"
+    return f"accounts/avatars/{instance.user.id}/{new_filename}"
 
 
 @cleanup.select
