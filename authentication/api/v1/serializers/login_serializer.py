@@ -2,7 +2,8 @@ from rest_framework import serializers
 from django.core.validators import EmailValidator
 from rest_framework.exceptions import ValidationError
 
-from authentication.services import AuthService
+from core.constants import OTPType
+from authentication.services import AuthService, OTPService
 
 
 class LoginSerializer(serializers.Serializer):
@@ -51,3 +52,32 @@ class LoginSerializer(serializers.Serializer):
             "access_token": access_token,
             "refresh_token": refresh_token,
         }
+
+
+class SendLoginOTPSerializer(serializers.Serializer):
+    """
+    Serializer for authenticating a user via OTP.
+    """
+
+    email = serializers.EmailField(
+        required=True,
+        validators=[EmailValidator],
+        error_messages={
+            "required": "Email is required",
+            "blank": "Email cannot be blank",
+        },
+    )
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+
+        try:
+            OTPService.generate_otp(email=email, otp_type=OTPType.LOGIN)
+
+        except ValidationError:
+            raise serializers.ValidationError(
+                {"form": "Failed to send OTP. Please try again."},
+                code="otp_send_failed",
+            )
+
+        return email

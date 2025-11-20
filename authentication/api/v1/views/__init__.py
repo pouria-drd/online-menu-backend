@@ -1,1 +1,1 @@
-from .login_view import LoginAPIView
+from .login_view import LoginAPIView, SendLoginOTPAPIView

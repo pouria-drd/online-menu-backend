@@ -4,11 +4,10 @@ import secrets
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
-from core.constants import OTP_LENGTH, OTPType, MAX_VERIFY_ATTEMPTS
-
+from core.constants import OTP_LENGTH, OTPType
 from authentication.models import OTPModel
-from authentication.repositories.otp_repo import OTPRepository
-from authentication.selectors.otp_selectors import OTPSelectors
+from authentication.selectors import OTPSelectors
+from authentication.repositories import OTPRepository
 
 
 class OTPService:
@@ -24,7 +23,10 @@ class OTPService:
         active = OTPRepository.get_active(email, otp_type)
         if active and not OTPSelectors.is_expired(active):
             raise ValidationError(
-                "Active OTP exists. Wait before requesting another.", code="otp_exists"
+                {
+                    "form": "An active OTP already exists. Please wait before requesting a new one."
+                },
+                code="otp_exists",
             )
 
         salt = secrets.token_hex(16)

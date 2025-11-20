@@ -1,1 +1,1 @@
-from .login_serializer import LoginSerializer
+from .login_serializer import LoginSerializer, SendLoginOTPSerializer
