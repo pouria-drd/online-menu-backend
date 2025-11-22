@@ -53,15 +53,62 @@ class AuthService:
         }
 
     @staticmethod
-    def send_login_otp(email: str) -> str:
+    def send_auth_otp(email: str, otp_type: OTPType) -> str:
         """
         Send OTP code to user via otp service for login.
         """
-        # Generate OTP via otp service
-        otp = OTPService.generate(email=email, otp_type=OTPType.LOGIN)
-        otp_email = otp.email
+        if otp_type == OTPType.LOGIN:
+            # Generate OTP via otp service
+            otp = OTPService.generate(email=email, otp_type=OTPType.LOGIN)
+            otp_email = otp.email
 
-        return otp_email
+            return otp_email
+
+        if otp_type == OTPType.REGISTER:
+            # Check if user exists
+            user = UserRepository.get_user_by_email(email)
+            if user:
+                raise ValidationError(
+                    {"email": "User already exists."}, code="user_exists"
+                )
+
+            # Generate OTP via otp service
+            otp = OTPService.generate(email=email, otp_type=OTPType.REGISTER)
+            otp_email = otp.email
+
+            return otp_email
+
+        raise ValidationError({"form": "Invalid OTP type."}, code="invalid_otp_type")
+
+    @staticmethod
+    def verify_auth_otp(email: str, code: str):
+        """
+        Verify OTP code for login.
+        """
+        # Check if OTP is valid
+        is_valid_otp = OTPService.verify(email=email, code=code)
+        if is_valid_otp:
+            # Try to get user by email
+            user = UserRepository.get_user_by_email(email)
+            # Check if user exists
+            if user:
+                # Update last login time
+                UserRepository.update_last_login(user)
+                # Generate JWT tokens
+                token = AuthService.generate_jwt_token(user)
+                refresh_token = str(token)
+                access_token = str(token.access_token)
+
+                return {
+                    "access": access_token,
+                    "refresh": refresh_token,
+                }
+            else:
+                raise ValidationError(
+                    {"form": "User not found."}, code="user_not_found"
+                )
+        else:
+            raise ValidationError({"form": "Invalid OTP."}, code="invalid_otp")
 
     @staticmethod
     def generate_jwt_token(user: UserModel) -> RefreshToken:
