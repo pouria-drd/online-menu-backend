@@ -25,12 +25,13 @@ class UserService:
             UserModel: Newly created user instance.
         """
         # Check if user with email already exists
-        if UserRepository.get_user_by_email(email):
+        existing_user = UserRepository.get_user_by_email(email)
+        if existing_user:
             raise ValidationError(
                 f"A user with email '{email}' already exists.", code="user_exists"
             )
         # Create user, profile, and settings
-        user = UserRepository.create_user(email=email, role=role, **extra_fields)
-        UserRepository.create_profile(user)
-        UserRepository.create_settings(user)
-        return user
+        new_user = UserRepository.create_user(email=email, role=role, **extra_fields)
+        UserRepository.create_profile(new_user)
+        UserRepository.create_settings(new_user)
+        return new_user
