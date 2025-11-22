@@ -79,7 +79,7 @@ class SendLoginOTPAPIView(APIView):
     http_method_names = ["post"]
     permission_classes = [AllowAny]
     # Request rate limit
-    throttle_scope = "anon"
+    throttle_scope = "otp"
     throttle_classes = [ScopedRateThrottle]
 
     def post(self, request: Request, *args, **kwargs):
@@ -131,7 +131,7 @@ class VerifyLoginOTPAPIView(APIView):
     http_method_names = ["post"]
     permission_classes = [AllowAny]
     # Request rate limit
-    throttle_scope = "anon"
+    throttle_scope = "otp"
     throttle_classes = [ScopedRateThrottle]
 
     def post(self, request: Request, *args, **kwargs):
