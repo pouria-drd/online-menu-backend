@@ -3,3 +3,7 @@ from .login_serializer import (
     SendLoginOTPSerializer,
     VerifyLoginOTPSerializer,
 )
+
+from .register_serializer import (
+    SendRegisterOTPSerializer,
+)
