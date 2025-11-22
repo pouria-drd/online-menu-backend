@@ -35,11 +35,9 @@ class LoginAPIView(APIView):
             email = serializer.validated_data["email"]  # type: ignore
             password = serializer.validated_data["password"]  # type: ignore
             # Authenticate user via auth service
-            user = AuthService.login_user(email=email, password=password)
-            # Generate JWT tokens
-            token = AuthService.generate_jwt_token(user)
-            refresh_token = str(token)
-            access_token = str(token.access_token)
+            user, access_token, refresh_token = AuthService.login(
+                email=email, password=password
+            )
             # Log and return response
             logger.info(f"User {user} logged in successfully via login api")
             return Response(
@@ -91,16 +89,16 @@ class SendLoginOTPAPIView(APIView):
             serializer.is_valid(raise_exception=True)
             # Extract Data
             email = serializer.validated_data["email"]  # type: ignore
-            # Generate OTP via otp service
-            otp = OTPService.generate(email=email, otp_type=OTPType.LOGIN)
+            # Send OTP via auth service
+            otp_email = AuthService.send_login_otp(email=email)
             # Log and return response
-            logger.info(f"OTP sent to {otp.email} via login api")
+            logger.info(f"OTP sent to {otp_email} via login api")
             return Response(
                 data={
                     "success": True,
                     "message": "OTP sent successfully.",
                     "result": {
-                        "email": otp.email,
+                        "email": otp_email,
                     },
                 },
                 status=status.HTTP_200_OK,

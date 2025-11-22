@@ -1,6 +1,4 @@
-import hmac
-import hashlib
-
+from typing import Optional
 from datetime import timedelta
 from django.utils import timezone
 from django.db.models import F, Q
@@ -12,14 +10,15 @@ class OTPRepository:
     """Repository layer for OTP-related DB operations."""
 
     @staticmethod
-    def create(email: str, otp_type: str, salt: str, code_hash: str):
+    def create_otp(email: str, otp_type: str, salt: str, code_hash: str) -> OTPModel:
         """Create new OTP for email."""
-        return OTPModel.objects.create(
+        qs = OTPModel.objects.create(
             email=email, otp_type=otp_type, salt=salt, code_hash=code_hash
         )
+        return qs
 
     @staticmethod
-    def delete_expired_or_used(email: str):
+    def delete_expired_otp(email: str):
         """Delete expired or used OTPs for email."""
         OTPModel.objects.filter(email=email).filter(
             Q(is_used=True)
@@ -27,11 +26,12 @@ class OTPRepository:
         ).delete()
 
     @staticmethod
-    def get_active(email: str, otp_type):
+    def get_active_otp(email: str, otp_type) -> Optional[OTPModel]:
         """Get active OTP for email and otp_type."""
-        return OTPModel.objects.filter(
+        qs = OTPModel.objects.filter(
             email=email, otp_type=otp_type, is_used=False
         ).first()
+        return qs
 
     @staticmethod
     def increment_attempts(otp: OTPModel):
@@ -45,10 +45,3 @@ class OTPRepository:
         if not otp.is_used:
             otp.is_used = True
             otp.save(update_fields=["is_used"])
-
-    @staticmethod
-    def hash_code(code: str, salt: str) -> str:
-        """
-        Return HMAC-SHA256 hex digest of code using salt.
-        """
-        return hmac.new(salt.encode(), code.encode(), hashlib.sha256).hexdigest()

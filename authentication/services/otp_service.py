@@ -18,10 +18,10 @@ class OTPService:
         Generate new OTP and return (otp_model, plain_code).
         Ensures old/expired otps are cleared and only one active exists.
         """
-        OTPRepository.delete_expired_or_used(email)
+        OTPRepository.delete_expired_otp(email)
 
-        active = OTPRepository.get_active(email, otp_type)
-        if active and not OTPSelectors.is_expired(active):
+        active_otp = OTPRepository.get_active_otp(email, otp_type)
+        if active_otp and not OTPSelectors.is_expired(active_otp):
             raise ValidationError(
                 {
                     "form": "An active OTP already exists. Please wait before requesting a new one."
@@ -32,9 +32,9 @@ class OTPService:
         salt = secrets.token_hex(16)
         code = f"{random.randint(0, 10**OTP_LENGTH - 1):0{OTP_LENGTH}d}"
 
-        code_hash = OTPRepository.hash_code(code, salt)
+        code_hash = OTPSelectors.hash_code(code, salt)
 
-        otp = OTPRepository.create(
+        otp = OTPRepository.create_otp(
             email=email, otp_type=otp_type, salt=salt, code_hash=code_hash
         )
 
@@ -53,21 +53,19 @@ class OTPService:
         Verify code, increment attempts, mark used if valid.
         Returns True on success, False otherwise.
         """
-        otp = OTPRepository.get_active(email, OTPType.LOGIN)
-
-        if not otp:
+        # Get active OTP
+        active_otp = OTPRepository.get_active_otp(email, OTPType.LOGIN)
+        if not active_otp:
             return False
 
-        if not OTPSelectors.is_valid(otp):
-            return False
+        # Increment attempts
+        OTPRepository.increment_attempts(active_otp)
 
-        OTPRepository.increment_attempts(otp)
+        # Check if OTP is valid
+        is_valid_otp = OTPSelectors.is_valid(active_otp, code)
+        if is_valid_otp:
+            # Mark OTP as used
+            OTPRepository.mark_used(active_otp)
+            return True
 
-        valid = hmac.compare_digest(
-            OTPRepository.hash_code(code, otp.salt), otp.code_hash
-        )
-
-        if valid:
-            OTPRepository.mark_used(otp)
-
-        return valid
+        return False

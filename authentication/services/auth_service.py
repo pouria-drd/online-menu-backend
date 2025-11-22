@@ -3,6 +3,8 @@ from django.contrib.auth.hashers import check_password
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
+from core.constants import OTPType
+from .otp_service import OTPService
 from accounts.models import UserModel
 from accounts.selectors import UserSelectors
 from accounts.repositories import UserRepository
@@ -12,7 +14,7 @@ class AuthService:
     """Service layer for auth-related business logic."""
 
     @staticmethod
-    def login_user(email: str, password: str) -> UserModel:
+    def login(email: str, password: str) -> dict:
         """
         Validate login credentials.
         This version is designed for JWT authentication (no session).
@@ -35,9 +37,31 @@ class AuthService:
                 {"form": "Invalid credentials"}, code="invalid_credentials"
             )
 
+        # Generate JWT tokens
+        token = AuthService.generate_jwt_token(user)
+        refresh_token = str(token)
+        access_token = str(token.access_token)
+
         UserRepository.update_last_login(user)
 
-        return user
+        # TODO: Notify user via email service that they have logged in
+
+        return {
+            "user": user,
+            "access": access_token,
+            "refresh": refresh_token,
+        }
+
+    @staticmethod
+    def send_login_otp(email: str) -> str:
+        """
+        Send OTP code to user via otp service for login.
+        """
+        # Generate OTP via otp service
+        otp = OTPService.generate(email=email, otp_type=OTPType.LOGIN)
+        otp_email = otp.email
+
+        return otp_email
 
     @staticmethod
     def generate_jwt_token(user: UserModel) -> RefreshToken:
