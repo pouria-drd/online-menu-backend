@@ -52,7 +52,7 @@ class AuthService:
         return user
 
     @staticmethod
-    def login(email: str, password: str) -> dict:
+    def login(email: str, password: str) -> tuple:
         """
         Login user with password and return JWT tokens.
 
@@ -61,7 +61,7 @@ class AuthService:
             password (str): Raw password.
 
         Returns:
-            dict: user instance + access/refresh token.
+            tuple: user instance + access + refresh token.
 
         Raises:
             ValidationError: If credentials are invalid or account inactive.
@@ -72,17 +72,17 @@ class AuthService:
             raise ValidationError(
                 {"form": "Invalid credentials"}, code="invalid_credentials"
             )
-        # Check if user is active
-        is_active = UserSelectors.is_active(user)
-        if not is_active:
-            raise ValidationError(
-                {"form": "Your account is inactive."}, code="inactive"
-            )
         # Check if password is correct
         is_correct = check_password(password, user.password)
         if not is_correct:
             raise ValidationError(
                 {"form": "Invalid credentials"}, code="invalid_credentials"
+            )
+        # Check if user is active
+        is_active = UserSelectors.is_active(user)
+        if not is_active:
+            raise ValidationError(
+                {"form": "Your account is inactive."}, code="inactive"
             )
         # Generate JWT tokens
         token = AuthService.generate_jwt_token(user)
@@ -93,14 +93,10 @@ class AuthService:
 
         # TODO: Notify user via email service that they have logged in
 
-        return {
-            "user": user,
-            "access": access_token,
-            "refresh": refresh_token,
-        }
+        return user, access_token, refresh_token
 
     @staticmethod
-    def otp_login(email: str, code: str) -> dict:
+    def otp_login(email: str, code: str) -> tuple:
         """
         Login user with OTP and return JWT tokens.
 
@@ -109,7 +105,7 @@ class AuthService:
             code (str): OTP code.
 
         Returns:
-            dict: user instance + access/refresh token.
+            tuple: user instance + access + refresh token.
 
         Raises:
             ValidationError: If credentials are invalid or account inactive.
@@ -140,11 +136,7 @@ class AuthService:
 
         # TODO: Notify user via email service that they have logged in
 
-        return {
-            "user": user,
-            "access": access_token,
-            "refresh": refresh_token,
-        }
+        return user, access_token, refresh_token
 
     @staticmethod
     def send_auth_otp(email: str, otp_type: OTPType) -> str:
