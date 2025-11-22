@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.throttling import ScopedRateThrottle
 
 from accounts.services import UserService
-from core.constants import OTPType
+from core.constants import OTPType, UserRole
 from authentication.services import AuthService, OTPService
 from authentication.api.v1.serializers import (
     SendRegisterOTPSerializer,
@@ -32,7 +32,7 @@ class SendRegisterOTPAPIView(APIView):
             # Extract Data
             validated_email = serializer.validated_data["email"]  # type: ignore
             # Create user via user service
-            user = UserService.register_user(email=validated_email)
+            user = UserService.register_user(email=validated_email, role=UserRole.USER)
             user_email = user.email
             # Generate OTP via otp service
             otp = OTPService.generate(email=user_email, otp_type=OTPType.REGISTER)
