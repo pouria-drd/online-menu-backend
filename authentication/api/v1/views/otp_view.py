@@ -8,13 +8,12 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.throttling import ScopedRateThrottle
 
 from authentication.services import AuthService
-from accounts.repositories import UserRepository
-from authentication.api.v1.serializers import VerifyOTPSerializer
+from authentication.api.v1.serializers import SendOTPSerializer
 
-logger = logging.getLogger("app.v1.register_view")
+logger = logging.getLogger("app.v1.otp_view")
 
 
-class OTPRegisterAPIView(APIView):
+class SendOTPAPIView(APIView):
     http_method_names = ["post"]
     permission_classes = [AllowAny]
     # Request rate limit
@@ -24,38 +23,30 @@ class OTPRegisterAPIView(APIView):
     def post(self, request: Request, *args, **kwargs):
         try:
             # Validate data
-            serializer = VerifyOTPSerializer(data=request.data)
+            serializer = SendOTPSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             # Extract Data
-            email = serializer.validated_data["email"]  # type: ignore
-            code = serializer.validated_data["code"]  # type: ignore
-            # Create user via auth service
-            new_user = AuthService.register(email=email, code=code)
-            # Generate JWT tokens
-            token = AuthService.generate_jwt_token(new_user)
-            refresh_token = str(token)
-            access_token = str(token.access_token)
-            # Update last login time
-            UserRepository.update_last_login(new_user)
+            otp_type = serializer.validated_data["otp_type"]  # type: ignore
+            validated_email = serializer.validated_data["email"]  # type: ignore
+            # Send OTP via auth service
+            otp_email = AuthService.send_auth_otp(
+                email=validated_email, otp_type=otp_type
+            )
             # Log and return response
-            logger.info(f"User {new_user} registered successfully via otp register api")
+            logger.info(f"OTP sent to {otp_email} via register api")
             return Response(
                 data={
                     "success": True,
-                    "message": "OTP verified successfully.",
+                    "message": "OTP sent successfully.",
                     "result": {
-                        "access": access_token,
-                        "refresh": refresh_token,
+                        "email": otp_email,
                     },
                 },
                 status=status.HTTP_200_OK,
             )
-
         # Handle validation errors
         except ValidationError as ve:
-            logger.warning(
-                f"Invalid data in VerifyRegisterOTPAPIView: {serializer.errors}"
-            )
+            logger.warning(f"Invalid data in SendLoginOTPAPIView: {serializer.errors}")
             return Response(
                 {
                     "success": False,
@@ -66,12 +57,12 @@ class OTPRegisterAPIView(APIView):
             )
         # Handle exceptions
         except Exception as e:
-            logger.error(f"Exception in VerifyRegisterOTPAPIView: {e}")
+            logger.error(f"Exception in SendLoginOTPAPIView: {e}")
             return Response(
                 {
                     "success": False,
                     "message": "Unexpected error.",
-                    "errors": {"detail": str(e)},
+                    "errors": str(e),
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

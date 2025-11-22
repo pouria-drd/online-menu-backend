@@ -3,45 +3,139 @@ from django.contrib.auth.hashers import check_password
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
-from core.constants import OTPType
 from .otp_service import OTPService
+from core.constants import OTPType, UserRole
+
 from accounts.models import UserModel
+from accounts.services import UserService
 from accounts.selectors import UserSelectors
 from accounts.repositories import UserRepository
 
 
 class AuthService:
-    """Service layer for auth-related business logic."""
+    """
+    Service layer for authentication logic.
+    Handles:
+    - Register user (OTP-based)
+    - Login user (OTP and password based)
+    - Token generation
+    """
+
+    @staticmethod
+    def register(email: str, code: str) -> UserModel:
+        """
+        Finalize user registration after OTP verification.
+
+        Args:
+            email (str): User email.
+            code (str): OTP code.
+
+        Returns:
+            UserModel: Newly created user.
+
+        Raises:
+            ValidationError: When OTP is invalid or user already exists.
+        """
+        # Check OTP validity
+        is_valid = OTPService.verify_otp(
+            email=email, code=code, otp_type=OTPType.REGISTER
+        )
+
+        if not is_valid:
+            raise ValidationError({"form": "Invalid OTP."}, code="invalid_otp")
+
+        # Create new user via user service
+        user = UserService.create_user(email=email, role=UserRole.USER)
+
+        # TODO: Notify user via email service that they have registered
+
+        return user
 
     @staticmethod
     def login(email: str, password: str) -> dict:
         """
-        Validate login credentials.
-        This version is designed for JWT authentication (no session).
+        Login user with password and return JWT tokens.
+
+        Args:
+            email (str): User email.
+            password (str): Raw password.
+
+        Returns:
+            dict: user instance + access/refresh token.
+
+        Raises:
+            ValidationError: If credentials are invalid or account inactive.
         """
-
+        # Try to get user by email
         user = UserRepository.get_user_by_email(email)
-
         if not user:
             raise ValidationError(
                 {"form": "Invalid credentials"}, code="invalid_credentials"
             )
-
-        if not UserSelectors.is_active(user):
+        # Check if user is active
+        is_active = UserSelectors.is_active(user)
+        if not is_active:
             raise ValidationError(
                 {"form": "Your account is inactive."}, code="inactive"
             )
-
-        if not check_password(password, user.password):
+        # Check if password is correct
+        is_correct = check_password(password, user.password)
+        if not is_correct:
             raise ValidationError(
                 {"form": "Invalid credentials"}, code="invalid_credentials"
+            )
+        # Generate JWT tokens
+        token = AuthService.generate_jwt_token(user)
+        refresh_token = str(token)
+        access_token = str(token.access_token)
+        # Update last login time
+        UserRepository.update_last_login(user)
+
+        # TODO: Notify user via email service that they have logged in
+
+        return {
+            "user": user,
+            "access": access_token,
+            "refresh": refresh_token,
+        }
+
+    @staticmethod
+    def otp_login(email: str, code: str) -> dict:
+        """
+        Login user with OTP and return JWT tokens.
+
+        Args:
+            email (str): User email.
+            code (str): OTP code.
+
+        Returns:
+            dict: user instance + access/refresh token.
+
+        Raises:
+            ValidationError: If credentials are invalid or account inactive.
+        """
+        # Check OTP validity
+        is_valid = OTPService.verify_otp(email=email, code=code, otp_type=OTPType.LOGIN)
+        if not is_valid:
+            raise ValidationError({"form": "Invalid OTP."}, code="invalid_otp")
+
+        # Try to get user by email
+        user = UserRepository.get_user_by_email(email)
+        if not user:
+            raise ValidationError({"form": "User not found."}, code="user_not_found")
+
+        # Check if user is active
+        is_active = UserSelectors.is_active(user)
+        if not is_active:
+            raise ValidationError(
+                {"form": "Your account is inactive."}, code="inactive"
             )
 
         # Generate JWT tokens
         token = AuthService.generate_jwt_token(user)
         refresh_token = str(token)
         access_token = str(token.access_token)
-
+        # Update last login time
         UserRepository.update_last_login(user)
 
         # TODO: Notify user via email service that they have logged in
@@ -55,60 +149,39 @@ class AuthService:
     @staticmethod
     def send_auth_otp(email: str, otp_type: OTPType) -> str:
         """
-        Send OTP code to user via otp service for login.
+        Send an OTP to email for login/register.
+
+        For register:
+            - Ensures no user exists.
+        For login:
+            - Ensures user already exists.
+
+        Returns:
+            str: email the OTP was sent to.
+
+        Raises:
+            ValidationError: if otp_type rules are violated.
         """
-        if otp_type == OTPType.LOGIN:
-            # Generate OTP via otp service
-            otp = OTPService.generate(email=email, otp_type=OTPType.LOGIN)
-            otp_email = otp.email
+        # Try to get user by email
+        existing_user = UserRepository.get_user_by_email(email)
 
-            return otp_email
-
+        # Check otp_type rules
         if otp_type == OTPType.REGISTER:
-            # Check if user exists
-            user = UserRepository.get_user_by_email(email)
-            if user:
+            # Ensure no user exists
+            if existing_user:
                 raise ValidationError(
                     {"email": "User already exists."}, code="user_exists"
                 )
-
-            # Generate OTP via otp service
-            otp = OTPService.generate(email=email, otp_type=OTPType.REGISTER)
-            otp_email = otp.email
-
-            return otp_email
-
-        raise ValidationError({"form": "Invalid OTP type."}, code="invalid_otp_type")
-
-    @staticmethod
-    def verify_auth_otp(email: str, code: str):
-        """
-        Verify OTP code for login.
-        """
-        # Check if OTP is valid
-        is_valid_otp = OTPService.verify(email=email, code=code)
-        if is_valid_otp:
-            # Try to get user by email
-            user = UserRepository.get_user_by_email(email)
-            # Check if user exists
-            if user:
-                # Update last login time
-                UserRepository.update_last_login(user)
-                # Generate JWT tokens
-                token = AuthService.generate_jwt_token(user)
-                refresh_token = str(token)
-                access_token = str(token.access_token)
-
-                return {
-                    "access": access_token,
-                    "refresh": refresh_token,
-                }
-            else:
+        # Check otp_type rules
+        elif otp_type == OTPType.LOGIN:
+            # Ensure user exists
+            if not existing_user:
                 raise ValidationError(
-                    {"form": "User not found."}, code="user_not_found"
+                    {"email": "User does not exist."}, code="user_not_found"
                 )
-        else:
-            raise ValidationError({"form": "Invalid OTP."}, code="invalid_otp")
+        # Generate OTP via otp service
+        otp = OTPService.send_otp(email=email, otp_type=otp_type)
+        return otp.email
 
     @staticmethod
     def generate_jwt_token(user: UserModel) -> RefreshToken:

@@ -1,9 +1,6 @@
-from .login_serializer import (
-    LoginSerializer,
-    SendLoginOTPSerializer,
-    VerifyLoginOTPSerializer,
-)
+from .login_serializer import LoginSerializer
 
-from .register_serializer import (
-    SendRegisterOTPSerializer,
+from .otp_serializer import (
+    SendOTPSerializer,
+    VerifyOTPSerializer,
 )

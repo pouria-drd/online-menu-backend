@@ -11,17 +11,40 @@ from authentication.repositories import OTPRepository
 
 
 class OTPService:
+    """
+    Service layer responsible for generating, sending, validating,
+    and enforcing rules for OTP codes.
+
+    High-level responsibilities:
+    - Enforce OTP cooldown rules (no duplicate active OTPs)
+    - Generate secure OTP codes + hashed storage
+    - Verify input codes safely (constant-time comparison)
+    """
+
     @staticmethod
     @transaction.atomic
-    def generate(email: str, otp_type: OTPType = OTPType.LOGIN) -> OTPModel:
+    def send_otp(email: str, otp_type: OTPType) -> OTPModel:
         """
-        Generate new OTP and return (otp_model, plain_code).
-        Ensures old/expired otps are cleared and only one active exists.
+        Generates a new OTP, enforces existing cooldown limits,
+        stores the OTP (salt + hashed code), and triggers the sending logic.
+
+        Args:
+            email (str): Target email address for OTP.
+            otp_type (OTPType): Purpose/type of OTP (REGISTER, LOGIN, etc.)
+
+        Raises:
+            ValidationError: If another valid OTP exists and user must wait.
+
+        Returns:
+            OTPModel: The newly created OTP database object.
         """
+
+        # 1. Remove expired OTPs to keep DB clean
         OTPRepository.delete_expired_otp(email)
 
-        active_otp = OTPRepository.get_active_otp(email, otp_type)
-        if active_otp and not OTPSelectors.is_expired(active_otp):
+        # 2. Check if a usable OTP already exists
+        pending_otp = OTPRepository.get_active_otp(email, otp_type)
+        if pending_otp and not OTPSelectors.is_expired(pending_otp):
             raise ValidationError(
                 {
                     "form": "An active OTP already exists. Please wait before requesting a new one."
@@ -29,43 +52,57 @@ class OTPService:
                 code="otp_exists",
             )
 
-        salt = secrets.token_hex(16)
-        code = f"{random.randint(0, 10**OTP_LENGTH - 1):0{OTP_LENGTH}d}"
+        # 3. Generate new OTP
+        otp_code = f"{secrets.randbelow(10 ** OTP_LENGTH):0{OTP_LENGTH}d}"
 
-        code_hash = OTPSelectors.hash_code(code, salt)
+        otp_salt = secrets.token_hex(16)
+        otp_hash = OTPSelectors.hash_code(otp_code, otp_salt)
 
-        otp = OTPRepository.create_otp(
-            email=email, otp_type=otp_type, salt=salt, code_hash=code_hash
+        # 4. Save OTP in repository
+        otp_instance = OTPRepository.create_otp(
+            email=email,
+            otp_type=otp_type,
+            salt=otp_salt,
+            code_hash=otp_hash,
         )
 
-        # TODO: Send code to user via email service
+        # 5. (TODO) Replace with real email provider
         print("============ OTP Code =============")
-        print(f"Email: {otp.email}")
-        print(f"Code:  {code}")
+        print(f"Email: {otp_instance.email}")
+        print(f"Code:  {otp_code}")
         print("====================================\n")
 
-        return otp
+        return otp_instance
 
     @staticmethod
     @transaction.atomic
-    def verify(email: str, code: str) -> bool:
+    def verify_otp(email: str, code: str, otp_type: OTPType) -> bool:
         """
-        Verify code, increment attempts, mark used if valid.
-        Returns True on success, False otherwise.
+        Validates an OTP against the stored hashed code, enforcing
+        expiration rules and incrementing attempt counters.
+
+        Args:
+            email (str): Email that OTP was sent to.
+            code (str): Code provided by the user.
+            otp_type (OTPType): The OTP category.
+
+        Returns:
+            bool: True if OTP is correct and successfully validated, else False.
         """
-        # Get active OTP
-        active_otp = OTPRepository.get_active_otp(email, OTPType.LOGIN)
-        if not active_otp:
+
+        # 1. Retrieve the pending OTP
+        pending_otp = OTPRepository.get_active_otp(email, otp_type)
+        if not pending_otp:
             return False
 
-        # Increment attempts
-        OTPRepository.increment_attempts(active_otp)
+        # 2. Increase attempt count (stored in DB)
+        OTPRepository.increment_attempts(pending_otp)
 
-        # Check if OTP is valid
-        is_valid_otp = OTPSelectors.is_valid(active_otp, code)
-        if is_valid_otp:
-            # Mark OTP as used
-            OTPRepository.mark_used(active_otp)
+        # 3. Check validity
+        is_valid = OTPSelectors.is_valid(pending_otp, code)
+
+        if is_valid:
+            OTPRepository.mark_used(pending_otp)
             return True
 
         return False

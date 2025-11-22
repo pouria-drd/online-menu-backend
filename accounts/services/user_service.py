@@ -8,30 +8,51 @@ from accounts.repositories import UserRepository
 
 
 class UserService:
-    """Service layer for user-related business logic."""
+    """
+    Service layer for user-related business logic.
+    Handles:
+        - Creating users
+        - Creating related objects (profile, settings)
+        - Validations for unique email
+    """
 
     @staticmethod
     @transaction.atomic
-    def register_user(
+    def create_user(
         email: str, role: UserRole = UserRole.USER, **extra_fields
     ) -> UserModel:
         """
-        Register a new user with profile and settings in a single transaction.
+        Create a fully initialized user:
+            - user record
+            - profile entry
+            - settings entry
 
-        Raises:
-            ValidationError: If a user with the same email exists.
+        Args:
+            email (str): User email address.
+            role (UserRole): Assigned user role (default: UserRole.USER).
+            extra_fields: Additional fields passed to user creation.
 
         Returns:
-            UserModel: Newly created user instance.
+            UserModel: The newly created user instance.
+
+        Raises:
+            ValidationError:
+                - user_exists: If a user with the given email already exists.
         """
-        # Check if user with email already exists
+
+        # Ensure unique email
         existing_user = UserRepository.get_user_by_email(email)
         if existing_user:
             raise ValidationError(
-                f"A user with email '{email}' already exists.", code="user_exists"
+                {"email": "A user with this email already exists."},
+                code="user_exists",
             )
-        # Create user, profile, and settings
+
+        # Create main user
         new_user = UserRepository.create_user(email=email, role=role, **extra_fields)
+
+        # Create related objects (decoupled via repository)
         UserRepository.create_profile(new_user)
         UserRepository.create_settings(new_user)
+
         return new_user
