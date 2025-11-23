@@ -13,11 +13,12 @@ class OTPAdmin(admin.ModelAdmin):
     list_display = (
         "email",
         "otp_type",
-        "created_at",
         "is_used",
-        "status_display",
         "attempts",
         "remaining_attempts_display",
+        "status_display",
+        "expire_at",
+        "created_at",
     )
 
     search_fields = ("email",)
@@ -68,7 +69,6 @@ class OTPAdmin(admin.ModelAdmin):
                 "fields": (
                     "created_at",
                     "updated_at",
-                    "expires_at_display",
                 ),
             },
         ),
@@ -96,6 +96,12 @@ class OTPAdmin(admin.ModelAdmin):
         return OTPSelectors.remaining_attempts(obj)
 
     remaining_attempts_display.short_description = "Attempts Left"
+
+    def expire_at(self, obj):
+        """Read from model property (clean access)."""
+        return OTPSelectors.expire_at(obj)
+
+    expire_at.short_description = "Expire At"
 
     # -----------------------------------------
     # Admin Actions (using Service / Repo)
