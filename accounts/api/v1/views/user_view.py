@@ -27,7 +27,7 @@ class UserView(RetrieveUpdateAPIView):
         return Response(
             {
                 "success": True,
-                "result": serializer.data,
+                "result": {"user": serializer.data},
                 "message": "User data retrieved successfully.",
             },
             status=status.HTTP_200_OK,
