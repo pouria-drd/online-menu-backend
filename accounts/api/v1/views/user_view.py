@@ -21,7 +21,7 @@ class UserView(RetrieveUpdateAPIView):
 
     def get(self, request: Request, *args, **kwargs):
         user = request.user
-        serializer = self.serializer_class(user)
+        serializer = self.serializer_class(user, context={"request": request})
 
         logger.info(f"User {user.email} requested their data via UserView")
         return Response(
