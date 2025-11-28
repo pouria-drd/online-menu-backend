@@ -13,8 +13,9 @@ class EmailTemplateAdmin(admin.ModelAdmin):
         "slug",
         "template_type",
         "is_active",
+        "updated_at",
         "created_at",
-        "preview_button",
+        # "preview_button",
     ]
     list_filter = ["template_type", "is_active", "created_at"]
     search_fields = ["name", "slug", "subject"]
@@ -32,16 +33,16 @@ class EmailTemplateAdmin(admin.ModelAdmin):
         ),
         (
             "Metadata",
-            {
-                "fields": ("created_at", "updated_at"),
-                "classes": ("collapse",),
-            },
+            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
 
-    def preview_button(self, obj):
-        """Button to preview the template."""
-        url = reverse("admin:email_service_emailtemplate_change", args=[obj.pk])
-        return format_html('<a class="button" href="{}">Preview</a>', url)
+    # def preview_button(self, obj):
+    #     """Button to preview the template change page."""
+    #     if obj.pk:
+    #         url = reverse("admin:mailer_emailtemplatemodel_change", args=[obj.pk])
+    #         return format_html('<a class="button" href="{}">Preview</a>', url)
+    #     return "-"
 
-    preview_button.short_description = "Actions"
+    # preview_button.short_description = "Actions"
+    # preview_button.allow_tags = True  # optional, legacy support

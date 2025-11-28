@@ -1,8 +1,10 @@
 from celery import shared_task
+
+from config.env import ENV_MAX_RETRY_ATTEMPTS
 from apps.mailer.services import EmailSendingService
 
 
-@shared_task(bind=True, max_retries=3)
+@shared_task(bind=True, max_retries=ENV_MAX_RETRY_ATTEMPTS)
 def send_email_async(self, template_slug, recipient_email, context, recipient_name=""):
     """
     Celery task to send emails asynchronously.

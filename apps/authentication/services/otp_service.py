@@ -2,10 +2,11 @@ import secrets
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 
+from apps.mailer.tasks import send_email_async
 from apps.authentication.models import OTPModel
 from apps.authentication.selectors import OTPSelectors
 from apps.authentication.repositories import OTPRepository
-from apps.authentication.constants import OTP_LENGTH, OTPType
+from apps.authentication.constants import OTP_LENGTH, OTPType, ENV_OTP_EXPIRY_MINUTES
 
 
 class OTPService:
@@ -64,11 +65,24 @@ class OTPService:
             code_hash=otp_hash,
         )
 
-        # 5. (TODO) Replace with real email provider
-        print("============ OTP Code =============")
-        print(f"Email: {otp_instance.email}")
-        print(f"Code:  {otp_code}")
-        print("====================================\n")
+        # print("============ OTP Code =============")
+        # print(f"Email: {otp_instance.email}")
+        # print(f"Code:  {otp_code}")
+        # print("====================================\n")
+
+        # Send single email asynchronously
+        send_email_async.delay(
+            template_slug="otp-verification",
+            recipient_email=otp_instance.email,
+            recipient_name=otp_instance.email,
+            context={
+                "name": otp_instance.email,
+                "otp_code": otp_code,
+                "expiry_minutes": ENV_OTP_EXPIRY_MINUTES,
+                "site_name": "Online Menu",
+                "support_email": "support@example.com",
+            },
+        )  # type: ignore
 
         return otp_instance
 

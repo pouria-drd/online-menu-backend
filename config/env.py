@@ -26,6 +26,7 @@ ENV_EMAIL_USE_TLS: bool = os.getenv("EMAIL_USE_TLS", "True") == "True"
 ENV_EMAIL_HOST_USER: str | None = os.getenv("EMAIL_HOST_USER")
 ENV_EMAIL_HOST_PASSWORD: str | None = os.getenv("EMAIL_HOST_PASSWORD")
 ENV_DEFAULT_FROM_EMAIL: str | None = os.getenv("DEFAULT_FROM_EMAIL")
+ENV_MAX_RETRY_ATTEMPTS: int = int(os.getenv("MAX_RETRY_ATTEMPTS", 3))
 
 # ---------------------------------------------------------------
 # JWT & AUTH Configuration

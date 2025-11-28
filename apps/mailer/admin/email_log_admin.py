@@ -12,7 +12,7 @@ class EmailLogAdmin(admin.ModelAdmin):
         "recipient_email",
         "subject",
         "status",
-        "template_link",
+        # "template_link",
         "sent_at",
         "created_at",
     ]
@@ -28,8 +28,8 @@ class EmailLogAdmin(admin.ModelAdmin):
         "sent_at",
         "opened_at",
         "clicked_at",
-        "created_at",
         "updated_at",
+        "created_at",
     ]
 
     fieldsets = (
@@ -39,10 +39,7 @@ class EmailLogAdmin(admin.ModelAdmin):
             {"fields": ("template", "subject", "status", "context_data")},
         ),
         ("Tracking", {"fields": ("sent_at", "opened_at", "clicked_at")}),
-        (
-            "Error Information",
-            {"fields": ("error_message",), "classes": ("collapse",)},
-        ),
+        ("Error Information", {"fields": ("error_message",), "classes": ("collapse",)}),
         (
             "Timestamps",
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
@@ -61,7 +58,7 @@ class EmailLogAdmin(admin.ModelAdmin):
         """Link to the associated template."""
         if obj.template:
             url = reverse(
-                "admin:email_service_emailtemplate_change", args=[obj.template.pk]
+                "admin:mailer_emailtemplatemodel_change", args=[obj.template.pk]
             )
             return format_html('<a href="{}">{}</a>', url, obj.template.name)
         return "-"
